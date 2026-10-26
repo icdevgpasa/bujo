@@ -7,7 +7,7 @@ import { InstallGuide } from '../components/InstallGuide'
 import { isInstalled } from '../install'
 import { HOURS, LEADS, reminderHour, reminderLead, remindersOn, setReminderHour, setReminderLead, setRemindersOn } from '../reminders'
 import { setSmartDates, smartDatesOn } from '../smartDates'
-import { currentTheme, setTheme, THEMES, type Theme } from '../theme'
+import { currentDark, currentTheme, setDark, setTheme, THEMES, type Dark, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
 
 function formatBytes(bytes: number): string {
@@ -33,6 +33,7 @@ export function BackupView() {
   const [ready, setReady] = useState<File>()
   const fileInput = useRef<HTMLInputElement>(null)
   const [theme, setThemeState] = useState(currentTheme)
+  const [dark, setDarkState] = useState(currentDark)
   const [guide, setGuide] = useState(false)
   const [smartDates, setSmartDatesState] = useState(smartDatesOn)
   const [reminders, setRemindersState] = useState(remindersOn)
@@ -110,6 +111,29 @@ export function BackupView() {
             <button type="button" role="radio" aria-checked={theme === t.id} class="theme-option" onClick={() => chooseTheme(t.id)}>
               <span class={`swatch swatch-${t.id}`} aria-hidden="true">{t.id === 'modern' ? <i /> : '• '}Kupić chleb</span>
               {t.label}
+            </button>
+          ))}
+        </div>
+        <p class="small dark-label">Tryb nocny</p>
+        <div class="chips" role="radiogroup" aria-label="Tryb nocny">
+          {(
+            [
+              ['off', 'Wyłączony'],
+              ['on', 'Włączony'],
+              ['auto', 'Jak w telefonie'],
+            ] as [Dark, string][]
+          ).map(([d, label]) => (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={dark === d}
+              class={`chip ${dark === d ? 'active' : ''}`}
+              onClick={() => {
+                setDark(d)
+                setDarkState(d)
+              }}
+            >
+              {label}
             </button>
           ))}
         </div>

@@ -702,10 +702,11 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 
 /*
- * Nocny: the dot-grid notebook after dark. Deep blue-grey page, chalky
- * cream ink, an amber ribbon; easy on the eyes in bed.
+ * Night mode, for every theme: the same page after dark. Each block sets the
+ * whole palette so it wins over the theme's light colours.
  */
-:root[data-theme='night'] {
+:root[data-dark] {
+  /* Paper notebook: deep blue-grey page, chalky cream ink, amber ribbon. */
   --paper: #1c2230;
   --paper-lit: #252d3d;
   --edge: #364055;
@@ -717,8 +718,43 @@ button:disabled { opacity: 0.5; cursor: default; }
   --danger: #f0806f;
   color-scheme: dark;
 }
-[data-theme='night'] .thumb img { background: #e9e4d8; box-shadow: 0 1px 4px rgb(0 0 0 / 0.5); }
-[data-theme='night'] .sheet-backdrop { background: rgb(0 0 0 / 0.5); }
+:root[data-theme='modern'][data-dark] {
+  --paper: #121418;
+  --paper-lit: #1c1f26;
+  --edge: #2c313b;
+  --dot: transparent;
+  --ink: #e8eaee;
+  --ink-soft: #a0a6b1;
+  --ink-faint: #6b717c;
+  --ribbon: #3fb497;
+  --danger: #ef7a6a;
+}
+:root[data-theme='squared'][data-dark] {
+  --paper: #141c2e;
+  --paper-lit: #1b2438;
+  --edge: #2a3753;
+  --dot: #1f2b45;
+  --ink: #c9d6ff;
+  --ink-soft: #93a0c2;
+  --ink-faint: #5f6b88;
+  --ribbon: #ff6b6b;
+  --danger: #ff8a7a;
+}
+:root[data-theme='kraft'][data-dark] {
+  --paper: #2a2119;
+  --paper-lit: #352a20;
+  --edge: #4a3b2c;
+  --dot: #4d3d2d;
+  --ink: #efe0c4;
+  --ink-soft: #bfa98a;
+  --ink-faint: #86735b;
+  --ribbon: #8fbf7a;
+  --danger: #ef8a6f;
+}
+[data-dark] .thumb img { background: #e9e4d8; box-shadow: 0 1px 4px rgb(0 0 0 / 0.5); }
+[data-dark] .sheet-backdrop { background: rgb(0 0 0 / 0.5); }
+[data-theme='modern'][data-dark] .entry .voice { background: color-mix(in srgb, var(--ribbon) 18%, var(--paper-lit)); }
+[data-theme='modern'][data-dark] .primary { color: var(--paper); }
 
 /* ---- Smart dates ---- */
 .when-hint {
@@ -802,16 +838,9 @@ button:disabled { opacity: 0.5; cursor: default; }
   background: #d6bc93 radial-gradient(#a4855a 1px, transparent 1.2px) 5px 5px / 12px 12px;
   border-radius: 2px;
 }
-.swatch-night {
-  font-family: 'Caveat', cursive;
-  font-size: 20px;
-  line-height: 22px;
-  color: #ebe4d3;
-  background: #1c2230 radial-gradient(#3b4559 1px, transparent 1.2px) 5px 5px / 12px 12px;
-  border-radius: 2px;
-}
 .swatch-modern i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #12715f; }
 
+.settings-section > .dark-label { margin: 16px 0 6px; }
 .reminder-settings { margin: 8px 0 0 32px; }
 .reminder-settings p { margin: 12px 0 6px; }
 .entry .remind { font-family: var(--print); font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
