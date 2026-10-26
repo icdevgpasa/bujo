@@ -7,12 +7,26 @@
     <script>
       // Apply the chosen look before the first paint (see src/theme.ts).
       try {
-        var bars = { modern: '#f3f4f6', squared: '#fdfdfb', kraft: '#d6bc93', night: '#1c2230' }
-        var theme = localStorage.getItem('bujo:theme')
-        if (bars[theme]) {
-          document.documentElement.dataset.theme = theme
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', bars[theme])
+        var bars = {
+          paper: ['#f3efe4', '#1c2230'],
+          modern: ['#f3f4f6', '#121418'],
+          squared: ['#fdfdfb', '#141c2e'],
+          kraft: ['#d6bc93', '#2a2119'],
         }
+        var theme = localStorage.getItem('bujo:theme')
+        var dark = localStorage.getItem('bujo:dark')
+        // The old Nocny theme became night mode on the paper notebook.
+        if (theme === 'night') {
+          theme = 'paper'
+          dark = 'on'
+          localStorage.setItem('bujo:theme', theme)
+          localStorage.setItem('bujo:dark', dark)
+        }
+        if (!bars[theme]) theme = 'paper'
+        var night = dark === 'on' || (dark === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = theme
+        if (night) document.documentElement.dataset.dark = ''
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', bars[theme][night ? 1 : 0])
       } catch {}
     </script>
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
