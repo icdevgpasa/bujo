@@ -13,7 +13,6 @@ export function DailyView({ day }: { day: string }) {
   const total = useLiveQuery(() => db.entries.count(), [])
   return (
     <>
-      {isToday && <div class="ribbon" aria-hidden="true" />}
       <header class="page-header">
         <a href={href.day(addDays(day, -1))} aria-label="Poprzedni dzień">‹</a>
         <h1>

@@ -3,7 +3,7 @@
 /*
  * A page from a dot-grid notebook: ivory paper, a faint grid that the text
  * actually sits on (24px rhythm), blue-black fountain-pen ink and one red
- * bookmark ribbon marking today.
+ * accent.
  */
 :root {
   --paper: #f3efe4;
@@ -15,7 +15,7 @@
   --ink-faint: #9aa0a9;
   --ribbon: #a8202c;
   --rhythm: 24px;
-  --tabs-h: 60px;
+  --tabs-h: 46px;
   --hand: 'Caveat', 'Segoe Script', cursive;
   --print: 'Archivo', system-ui, sans-serif;
   color-scheme: light;
@@ -51,14 +51,14 @@ a { color: inherit; }
   max-width: 560px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: max(20px, env(safe-area-inset-top)) 20px calc(var(--tabs-h) + 136px);
+  padding: max(20px, env(safe-area-inset-top)) 20px calc(var(--tabs-h) + 110px);
 }
 
 .page-header {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 0 18px 6px 0;
+  padding: 0 0 6px;
   margin-bottom: var(--rhythm);
   border-bottom: 1px solid var(--edge);
 }
@@ -89,23 +89,6 @@ a { color: inherit; }
   font-size: 22px;
   color: var(--ink-faint);
   text-decoration: none;
-}
-
-/* The bookmark ribbon: hangs from the top edge, only ever marks today. */
-.ribbon {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(262px);
-  width: 11px;
-  height: 86px;
-  background: var(--ribbon);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
-  pointer-events: none;
-}
-@media (max-width: 440px) {
-  .ribbon { left: auto; right: 7px; transform: none; }
 }
 
 h2 {
@@ -209,7 +192,7 @@ section:first-of-type h2 { margin-top: 4px; }
   left: 0; right: 0; bottom: var(--tabs-h);
   max-width: 560px;
   margin: 0 auto;
-  padding: 8px 16px;
+  padding: 6px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -219,7 +202,7 @@ section:first-of-type h2 { margin-top: 4px; }
 .composer-row { display: flex; gap: 5px; }
 .types { display: flex; gap: 0; }
 .types button, .composer input, .photo-button {
-  height: 44px;
+  height: 40px;
   background: var(--paper-lit);
   border: 1px solid var(--edge);
   border-radius: 3px;
@@ -259,6 +242,8 @@ section:first-of-type h2 { margin-top: 4px; }
   text-decoration: none;
 }
 .tabs a[aria-current='page'] { color: var(--ink); box-shadow: inset 0 2px 0 var(--ribbon); }
+.tabs .icon-tab { flex: none; width: 56px; }
+.tabs svg { width: 20px; height: 20px; }
 
 .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 .chip {
