@@ -38,7 +38,11 @@ export function daysOfMonth(key: string): string[] {
 }
 
 export function formatDay(key: string): string {
-  return parseDay(key).toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' })
+  return parseDay(key).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' })
+}
+
+export function weekdayLong(key: string): string {
+  return parseDay(key).toLocaleDateString('pl-PL', { weekday: 'long' })
 }
 
 export function formatMonth(key: string, withYear = true): string {
