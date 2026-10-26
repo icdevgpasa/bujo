@@ -13,6 +13,8 @@ import { alarmLabel, openInCalendar, reminderFor, remindersOn } from '../reminde
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
 import { Sheet } from './Sheet'
+import { ShareSheet } from './ShareSheet'
+import { entryLine, shareOn } from '../share'
 import { Writer } from './Writer'
 
 interface Target {
@@ -54,6 +56,7 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
   const [timer, setTimer] = useState<{ minutes: number; audio?: HTMLAudioElement }>()
   const [stepText, setStepText] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [error, setError] = useState('')
 
   const run = (action: () => Promise<unknown>) => async () => {
@@ -97,6 +100,8 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
     await updateEntry(entry.id, { steps: [...(entry.steps ?? []), { text, done: false }] })
     setStepText('')
   }
+
+  if (sharing) return <ShareSheet title={`Udostępnij: ${TYPE_LABEL[entry.type].toLowerCase()}`} text={entryLine(entry, false)} entryIds={[entry.id]} onClose={onClose} />
 
   if (timer) return <FocusTimer entry={entry} minutes={timer.minutes} audio={timer.audio} onClose={onClose} />
 
@@ -257,6 +262,7 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
         >
           Edytuj tekst
         </button>
+        {shareOn() && <button type="button" onClick={() => setSharing(true)}>📤 Udostępnij</button>}
         <button type="button" onClick={pasteInto}>📋 Wklej ze schowka</button>
         <MediaPicker onPick={(files) => attach(files)}>📷 Dodaj zdjęcie lub film</MediaPicker>
         <RecordButton class="photo-button" onRecorded={(audio, seconds) => attach([audio], seconds)}>🎙 Nagraj notatkę głosową</RecordButton>

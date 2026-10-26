@@ -11,12 +11,15 @@ import { useState } from 'preact/hooks'
 import { InboxReview } from '../components/InboxReview'
 import { OneThing } from '../components/OneThing'
 import { focusOn } from '../focus'
+import { ShareSheet } from '../components/ShareSheet'
+import { dayText, shareOn } from '../share'
 
 export function DailyView({ day }: { day: string }) {
   const entries = useLiveQuery(() => entriesFor('daily', day), [day])
   const isToday = day === dayKey()
   const total = useLiveQuery(() => db.entries.count(), [])
   const [oneThing, setOneThing] = useState(false)
+  const [sharing, setSharing] = useState(false)
   // Top 3: starred tasks on top, everything else folded away below.
   const starred = focusOn('bujo:top3') ? (entries ?? []).filter((e) => e.star && e.status === 'open') : []
   const rest = entries?.filter((e) => !starred.includes(e))
@@ -64,6 +67,14 @@ export function DailyView({ day }: { day: string }) {
         </>
       ) : (
         <EntryList entries={entries} empty="Pusta strona. Dodaj pierwszy wpis poniżej." />
+      )}
+      {shareOn() && entries && entries.length > 0 && (
+        <button type="button" class="share-day" onClick={() => setSharing(true)}>
+          📤 Udostępnij cały dzień
+        </button>
+      )}
+      {sharing && entries && (
+        <ShareSheet title={`Udostępnij ${formatDay(day)}`} text={dayText(day, entries)} entryIds={entries.map((e) => e.id)} onClose={() => setSharing(false)} />
       )}
       {oneThing && entries && <OneThing entries={entries} onClose={() => setOneThing(false)} />}
       <Composer

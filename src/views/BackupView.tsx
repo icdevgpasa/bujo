@@ -8,6 +8,7 @@ import { isInstalled } from '../install'
 import { FOCUS, focusOn, setFocus, type FocusKey } from '../focus'
 import { HOURS, LEADS, reminderHour, reminderLead, remindersOn, setReminderHour, setReminderLead, setRemindersOn } from '../reminders'
 import { setSmartDates, smartDatesOn } from '../smartDates'
+import { setShare, shareOn } from '../share'
 import { currentDark, currentTheme, setDark, setTheme, THEMES, type Dark, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
 
@@ -38,6 +39,7 @@ export function BackupView() {
   const [guide, setGuide] = useState(false)
   const [smartDates, setSmartDatesState] = useState(smartDatesOn)
   const [reminders, setRemindersState] = useState(remindersOn)
+  const [sharing, setSharingState] = useState(shareOn)
   const [focus, setFocusState] = useState(() => Object.fromEntries(FOCUS.map((f) => [f.key, focusOn(f.key)])) as Record<FocusKey, boolean>)
   const [lead, setLeadState] = useState(reminderLead)
   const [hour, setHourState] = useState(reminderHour)
@@ -156,6 +158,21 @@ export function BackupView() {
             <b>Rozpoznawaj daty i rodzaj wpisu</b>
             <br />
             <span class="muted small">„Kupić jutro chleb” trafi na jutro jako zadanie „Kupić chleb”, a „urodziny Mariusza w grudniu” do grudnia jako wydarzenie. Rozumie m.in. jutro, pojutrze, w piątek, za 3 dni, 15 listopada, w grudniu.</span>
+          </span>
+        </label>
+        <label class="toggle">
+          <input
+            type="checkbox"
+            checked={sharing}
+            onChange={(e) => {
+              setShare(e.currentTarget.checked)
+              setSharingState(e.currentTarget.checked)
+            }}
+          />
+          <span>
+            <b>Udostępnianie</b>
+            <br />
+            <span class="muted small">Przycisk 📤 w menu wpisu i na dole strony dnia. Wysyła tekst ze zdjęciami, nagraniami i filmami przez WhatsAppa, Wiadomości, maila itd.</span>
           </span>
         </label>
       </section>
