@@ -3,8 +3,9 @@ import type { MediaKind, Prepared } from './media'
 
 export type EntryType = 'task' | 'event' | 'note'
 export type EntryStatus = 'open' | 'done' | 'migrated' | 'scheduled' | 'cancelled'
-// daily: key = YYYY-MM-DD, monthly/future: key = YYYY-MM
-export type LogKind = 'daily' | 'monthly' | 'future'
+// daily: key = YYYY-MM-DD, monthly/future: key = YYYY-MM,
+// collection: key = the collection's id
+export type LogKind = 'daily' | 'monthly' | 'future' | 'collection'
 
 export interface Entry {
   id: number
@@ -48,10 +49,19 @@ export interface Habit {
   createdAt: number
 }
 
+// A page of its own for a list kept over time (books to read, gift ideas),
+// listed in the index rather than tied to a date.
+export interface Collection {
+  id: number
+  name: string
+  createdAt: number
+}
+
 export const db = new Dexie('bujo') as Dexie & {
   entries: EntityTable<Entry, 'id'>
   photos: EntityTable<Photo, 'id'>
   habits: EntityTable<Habit, 'id'>
+  collections: EntityTable<Collection, 'id'>
 }
 
 db.version(1).stores({
@@ -60,6 +70,9 @@ db.version(1).stores({
 })
 db.version(2).stores({
   habits: '++id, month',
+})
+db.version(3).stores({
+  collections: '++id',
 })
 
 export function entriesFor(log: LogKind, key: string) {
@@ -183,6 +196,52 @@ export async function carryOverHabits(month: string, previousMonth: string, curr
   } catch {
     // See above.
   }
+}
+
+export const collectionKey = (id: number) => String(id)
+
+export function addCollection(name: string) {
+  return db.collections.add({ name, createdAt: Date.now() })
+}
+
+export function renameCollection(id: number, name: string) {
+  return db.collections.update(id, { name })
+}
+
+// Removes the page together with its entries and their attachments.
+export function deleteCollection(id: number) {
+  return db.transaction('rw', db.collections, db.entries, db.photos, async () => {
+    const ids = await db.entries.where('[log+key]').equals(['collection', collectionKey(id)]).primaryKeys()
+    await db.photos.where('entryId').anyOf(ids).delete()
+    await db.entries.bulkDelete(ids)
+    await db.collections.delete(id)
+  })
+}
+
+// Folds case and Polish letters, so "zolw" finds "Żółw".
+export function fold(text: string): string {
+  return text
+    .toLocaleLowerCase('pl')
+    .replace(/ł/g, 'l')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
+const SEARCH_LIMIT = 60
+
+// Newest first. Scans every entry, which is fine for a personal journal.
+export async function searchEntries(query: string): Promise<Entry[]> {
+  const words = fold(query).split(/\s+/).filter(Boolean)
+  if (!words.length) return []
+  return db.entries
+    .orderBy('createdAt')
+    .reverse()
+    .filter((e) => {
+      const text = fold(e.text)
+      return words.every((w) => text.includes(w))
+    })
+    .limit(SEARCH_LIMIT)
+    .toArray()
 }
 
 // Ask the browser not to evict our data under storage pressure.

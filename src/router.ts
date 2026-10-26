@@ -6,6 +6,8 @@ export type Route =
   | { view: 'month'; key: string }
   | { view: 'future' }
   | { view: 'backup' }
+  | { view: 'index' }
+  | { view: 'collection'; id: number }
 
 export function parseRoute(hash: string): Route {
   const [, view, key] = hash.replace(/^#/, '').split('/')
@@ -13,6 +15,8 @@ export function parseRoute(hash: string): Route {
   if (view === 'month' && /^\d{4}-\d{2}$/.test(key)) return { view, key }
   if (view === 'future') return { view }
   if (view === 'backup') return { view }
+  if (view === 'index') return { view }
+  if (view === 'collection' && /^\d+$/.test(key)) return { view, id: Number(key) }
   return { view: 'day', key: dayKey() }
 }
 
@@ -21,6 +25,8 @@ export const href = {
   month: (key = monthKey()) => `#/month/${key}`,
   future: () => '#/future',
   backup: () => '#/backup',
+  index: () => '#/index',
+  collection: (id: number) => `#/collection/${id}`,
 }
 
 export function useRoute(): Route {

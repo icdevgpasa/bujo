@@ -1,4 +1,4 @@
-import { db, kindOf, type Entry, type Habit, type Photo } from './db'
+import { db, kindOf, type Collection, type Entry, type Habit, type Photo } from './db'
 import { dayKey } from './dates'
 import type { MediaKind } from './media'
 import { isZip, unzipBlobs, zipBlobs } from './zip'
@@ -6,7 +6,8 @@ import { isZip, unzipBlobs, zipBlobs } from './zip'
 const FORMAT = 'bujo-backup'
 // v1: JSON with photos as data URLs. v2: adds habits. v3: a ZIP holding
 // bujo.json plus every photo, film and recording as its own file.
-const VERSION = 3
+// v4: adds collections.
+const VERSION = 4
 const MANIFEST = 'bujo.json'
 const LAST_BACKUP_KEY = 'bujo:lastBackup'
 
@@ -30,6 +31,7 @@ interface BackupFile<P> {
   entries: Entry[]
   photos: P[]
   habits?: Habit[]
+  collections?: Collection[]
 }
 
 export interface BackupSummary {
@@ -57,7 +59,12 @@ function extensionFor(type: string): string {
 }
 
 export async function createBackup(): Promise<File> {
-  const [entries, photos, habits] = await Promise.all([db.entries.toArray(), db.photos.toArray(), db.habits.toArray()])
+  const [entries, photos, habits, collections] = await Promise.all([
+    db.entries.toArray(),
+    db.photos.toArray(),
+    db.habits.toArray(),
+    db.collections.toArray(),
+  ])
   const files: { name: string; data: Blob }[] = []
   const listed: FilePhoto[] = photos.map(({ blob, thumb, ...rest }) => {
     const file = `media/${rest.id}.${extensionFor(blob.type)}`
@@ -66,7 +73,7 @@ export async function createBackup(): Promise<File> {
     if (thumb && thumbFile) files.push({ name: thumbFile, data: thumb })
     return { ...rest, file, type: blob.type, thumbFile }
   })
-  const manifest: BackupFile<FilePhoto> = { format: FORMAT, version: VERSION, createdAt: Date.now(), entries, habits, photos: listed }
+  const manifest: BackupFile<FilePhoto> = { format: FORMAT, version: VERSION, createdAt: Date.now(), entries, habits, collections, photos: listed }
   const zip = await zipBlobs([{ name: MANIFEST, data: new Blob([JSON.stringify(manifest)], { type: 'application/json' }) }, ...files])
   return new File([zip], `bujo-kopia-${dayKey()}.zip`, { type: 'application/zip' })
 }
@@ -165,13 +172,12 @@ export async function readBackup(file: Blob): Promise<{ summary: BackupSummary; 
     },
     restore: async () => {
       const photos = await loadPhotos()
-      await db.transaction('rw', db.entries, db.photos, db.habits, async () => {
-        await db.entries.clear()
-        await db.photos.clear()
-        await db.habits.clear()
+      await db.transaction('rw', [db.entries, db.photos, db.habits, db.collections], async () => {
+        await Promise.all([db.entries.clear(), db.photos.clear(), db.habits.clear(), db.collections.clear()])
         await db.entries.bulkPut(data.entries)
         await db.photos.bulkPut(photos)
         await db.habits.bulkPut(data.habits ?? [])
+        await db.collections.bulkPut(data.collections ?? [])
       })
     },
   }

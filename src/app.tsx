@@ -2,7 +2,9 @@ import { monthKey } from './dates'
 import { href, useRoute, useTurn } from './router'
 import { BackupView } from './views/BackupView'
 import { DailyView } from './views/DailyView'
+import { CollectionView } from './views/CollectionView'
 import { FutureView } from './views/FutureView'
+import { IndexView } from './views/IndexView'
 import { MonthlyView } from './views/MonthlyView'
 
 export function App() {
@@ -15,11 +17,14 @@ export function App() {
         {route.view === 'month' && <MonthlyView key={route.key} month={route.key} />}
         {route.view === 'future' && <FutureView />}
         {route.view === 'backup' && <BackupView />}
+        {route.view === 'index' && <IndexView />}
+        {route.view === 'collection' && <CollectionView key={route.id} id={route.id} />}
       </main>
       <nav class="tabs" aria-label="Widoki">
         <a href={href.day()} aria-current={route.view === 'day' ? 'page' : undefined}>Dzień</a>
         <a href={href.month(monthKey())} aria-current={route.view === 'month' ? 'page' : undefined}>Miesiąc</a>
         <a href={href.future()} aria-current={route.view === 'future' ? 'page' : undefined}>Przyszłość</a>
+        <a href={href.index()} aria-current={route.view === 'index' || route.view === 'collection' ? 'page' : undefined}>Indeks</a>
         <a
           href={href.backup()}
           class="icon-tab"
