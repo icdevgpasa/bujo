@@ -1,13 +1,13 @@
 import { useState } from 'preact/hooks'
 import { describeClipboardError, findUrl, hostOf, readClipboard } from '../clipboard'
 import { addDays, addMonths, dayKey, formatMonth, monthKey } from '../dates'
-import { addMedia, db, deleteEntry, kindOf, migrateEntry, updateEntry, type Entry, type LogKind } from '../db'
+import { addMedia, db, deleteEntry, kindOf, migrateEntry, updateEntry, type Entry, type EntryType, type LogKind } from '../db'
 import { compressPhoto, prepareMedia } from '../media'
 import { useLiveQuery } from '../useLiveQuery'
 import { describeAttachments, placeholderFor } from './attachments'
-import { TYPE_LABEL } from './bullets'
+import { BULLET, TYPE_LABEL } from './bullets'
 import { primeKeyboard } from '../keyboard'
-import { openInCalendar, reminderFor, remindersOn } from '../reminders'
+import { alarmLabel, openInCalendar, reminderFor, remindersOn } from '../reminders'
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
 import { Sheet } from './Sheet'
@@ -47,6 +47,7 @@ function targetsFor(entry: Entry): Target[] {
 export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => void }) {
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(entry.text)
+  const [type, setType] = useState(entry.type)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState('')
 
@@ -91,10 +92,32 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
         title="Edycja wpisu"
         text={text}
         onText={setText}
-        onSave={run(() => updateEntry(entry.id, { text: text.trim() }))}
+        onSave={run(() =>
+          updateEntry(entry.id, {
+            text: text.trim(),
+            type,
+            // Done and crossed-out only mean something for tasks.
+            ...(type !== entry.type && (entry.status === 'done' || entry.status === 'cancelled') ? { status: 'open' as const } : {}),
+          }),
+        )}
         onCancel={() => setEditing(false)}
         error={error}
-      />
+      >
+        <div class="writer-types" role="radiogroup" aria-label="Rodzaj wpisu">
+          {(Object.keys(BULLET) as EntryType[]).map((t) => (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={type === t}
+              class={`chip ${type === t ? 'active' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setType(t)}
+            >
+              {BULLET[t]} {TYPE_LABEL[t]}
+            </button>
+          ))}
+        </div>
+      </Writer>
     )
 
   return (
@@ -115,10 +138,18 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
         </div>
       )}
 
+      {entry.remindAt && <p class="muted small">🔔 Przypomnienie w Kalendarzu: {alarmLabel(entry.remindAt)}</p>}
       {remindersOn() && entry.log === 'daily' && entry.status === 'open' && (
         <div class="actions">
-          <button type="button" onClick={() => openInCalendar(reminderFor(entry.text, entry.key))}>
-            🔔 Przypomnij: {reminderFor(entry.text, entry.key).label}
+          <button
+            type="button"
+            onClick={async () => {
+              const reminder = reminderFor(entry.text, entry.key)
+              await updateEntry(entry.id, { remindAt: reminder.alarm.getTime() })
+              openInCalendar(reminder)
+            }}
+          >
+            🔔 {entry.remindAt ? 'Przypomnij jeszcze raz' : 'Przypomnij'}: {reminderFor(entry.text, entry.key).label}
           </button>
         </div>
       )}

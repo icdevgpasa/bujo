@@ -100,76 +100,10 @@ export function BackupView() {
   return (
     <>
       <header class="page-header">
-        <h1>Kopia zapasowa</h1>
+        <h1>Ustawienia</h1>
       </header>
 
-      <p class="note">
-        Wszystko, co zapisujesz, jest tylko w tym telefonie. Jeśli go zgubisz albo usuniesz aplikację, wpisy, zdjęcia, filmy i nagrania znikną. Zapisuj kopię co jakiś czas w bezpiecznym miejscu.
-      </p>
-
-      <dl class="facts">
-        <dt>Wpisy</dt>
-        <dd>{counts?.entries ?? '…'}</dd>
-        <dt>Załączniki</dt>
-        <dd>{counts ? describeAttachments(counts.media) || 'brak' : '…'}</dd>
-        {usage !== undefined && (
-          <>
-            <dt>Zajęte miejsce</dt>
-            <dd>{formatBytes(usage)}</dd>
-          </>
-        )}
-        <dt>Ostatnia kopia</dt>
-        <dd>{last ? formatDate(last) : 'jeszcze nie było'}</dd>
-        {/* Home-screen apps are exempt from Safari's storage eviction, so this
-            only matters when the app runs in a browser tab. */}
-        {persisted === false && !isInstalled && (
-          <>
-            <dt>Ochrona danych</dt>
-            <dd class="warn">
-              Przeglądarka może usunąć dane przy braku miejsca.{' '}
-              <button type="button" class="link inline" onClick={() => setGuide(true)}>Dodaj aplikację do ekranu</button>
-            </dd>
-          </>
-        )}
-      </dl>
-
-      {error && <p class="error" role="alert">{error}</p>}
-      {status && <p class="status" role="status">{status}</p>}
-
-      {pending ? (
-        <div class="confirm">
-          <p>
-            Kopia z {formatDate(pending.summary.createdAt)}: {pending.summary.entries}{' '}
-            {plural(pending.summary.entries, 'wpis', 'wpisy', 'wpisów')}
-            {pending.summary.media.length > 0 && `, ${describeAttachments(pending.summary.media)}`}.
-          </p>
-          <p class="warn">Przywrócenie zastąpi wszystko, co jest teraz w aplikacji.</p>
-          <div class="row">
-            <button type="button" onClick={() => setPending(undefined)} disabled={busy}>Anuluj</button>
-            <button type="button" class="danger" onClick={restore} disabled={busy}>Zastąp i przywróć</button>
-          </div>
-        </div>
-      ) : (
-        <div class="actions">
-          <button type="button" class="primary" onClick={exportBackup} disabled={busy}>
-            {ready ? 'Zapisz gotowy plik' : 'Zapisz kopię'}
-          </button>
-          <button type="button" onClick={() => fileInput.current?.click()} disabled={busy}>Przywróć z pliku</button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="application/zip,.zip,application/json,.json"
-            hidden
-            onChange={(e) => {
-              const file = e.currentTarget.files?.[0]
-              e.currentTarget.value = ''
-              if (file) pickFile(file)
-            }}
-          />
-        </div>
-      )}
-
-      <section class="look">
+      <section class="settings-section">
         <h2>Wygląd</h2>
         <div class="themes" role="radiogroup" aria-label="Wygląd">
           <button type="button" role="radio" aria-checked={theme === 'paper'} class="theme-option" onClick={() => chooseTheme('paper')}>
@@ -181,6 +115,10 @@ export function BackupView() {
             Nowoczesny
           </button>
         </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Pisanie</h2>
         <label class="toggle">
           <input
             type="checkbox"
@@ -196,6 +134,10 @@ export function BackupView() {
             <span class="muted small">„Kupić jutro chleb” trafi na jutro jako zadanie „Kupić chleb”, a „urodziny Mariusza w grudniu” do grudnia jako wydarzenie. Rozumie m.in. jutro, pojutrze, w piątek, za 3 dni, 15 listopada, w grudniu.</span>
           </span>
         </label>
+      </section>
+
+      <section class="settings-section">
+        <h2>Przypomnienia</h2>
         <label class="toggle">
           <input
             type="checkbox"
@@ -232,6 +174,76 @@ export function BackupView() {
           </div>
         )}
       </section>
+
+      <section class="settings-section">
+        <h2>Kopia zapasowa</h2>
+        <p class="muted small">
+          Wszystko, co zapisujesz, jest tylko w tym telefonie. Jeśli go zgubisz albo usuniesz aplikację, wpisy, zdjęcia, filmy i nagrania znikną. Zapisuj kopię co jakiś czas w bezpiecznym miejscu.
+        </p>
+
+        <dl class="facts">
+          <dt>Wpisy</dt>
+          <dd>{counts?.entries ?? '…'}</dd>
+          <dt>Załączniki</dt>
+          <dd>{counts ? describeAttachments(counts.media) || 'brak' : '…'}</dd>
+          {usage !== undefined && (
+            <>
+              <dt>Zajęte miejsce</dt>
+              <dd>{formatBytes(usage)}</dd>
+            </>
+          )}
+          <dt>Ostatnia kopia</dt>
+          <dd>{last ? formatDate(last) : 'jeszcze nie było'}</dd>
+          {/* Home-screen apps are exempt from Safari's storage eviction, so this
+              only matters when the app runs in a browser tab. */}
+          {persisted === false && !isInstalled && (
+            <>
+              <dt>Ochrona danych</dt>
+              <dd class="warn">
+                Przeglądarka może usunąć dane przy braku miejsca.{' '}
+                <button type="button" class="link inline" onClick={() => setGuide(true)}>Dodaj aplikację do ekranu</button>
+              </dd>
+            </>
+          )}
+        </dl>
+
+        {error && <p class="error" role="alert">{error}</p>}
+        {status && <p class="status" role="status">{status}</p>}
+
+        {pending ? (
+          <div class="confirm">
+            <p>
+              Kopia z {formatDate(pending.summary.createdAt)}: {pending.summary.entries}{' '}
+              {plural(pending.summary.entries, 'wpis', 'wpisy', 'wpisów')}
+              {pending.summary.media.length > 0 && `, ${describeAttachments(pending.summary.media)}`}.
+            </p>
+            <p class="warn">Przywrócenie zastąpi wszystko, co jest teraz w aplikacji.</p>
+            <div class="row">
+              <button type="button" onClick={() => setPending(undefined)} disabled={busy}>Anuluj</button>
+              <button type="button" class="danger" onClick={restore} disabled={busy}>Zastąp i przywróć</button>
+            </div>
+          </div>
+        ) : (
+          <div class="actions">
+            <button type="button" class="primary" onClick={exportBackup} disabled={busy}>
+              {ready ? 'Zapisz gotowy plik' : 'Zapisz kopię'}
+            </button>
+            <button type="button" onClick={() => fileInput.current?.click()} disabled={busy}>Przywróć z pliku</button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/zip,.zip,application/json,.json"
+              hidden
+              onChange={(e) => {
+                const file = e.currentTarget.files?.[0]
+                e.currentTarget.value = ''
+                if (file) pickFile(file)
+              }}
+            />
+          </div>
+        )}
+      </section>
+
       {!isInstalled && (
         <p>
           <button type="button" class="link inline" onClick={() => setGuide(true)}>Jak dodać Bujo do ekranu telefonu</button>

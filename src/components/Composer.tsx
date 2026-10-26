@@ -1,7 +1,7 @@
 import type { ComponentChildren } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { describeClipboardError, findUrl, readClipboard, type Pasted } from '../clipboard'
-import type { EntryType, LogKind } from '../db'
+import { updateEntry, type EntryType, type LogKind } from '../db'
 import { primeKeyboard } from '../keyboard'
 import { openInCalendar, reminderFor, remindersOn, timeIn } from '../reminders'
 import { prepareMedia, type Prepared } from '../media'
@@ -30,7 +30,8 @@ export function Composer({
   children,
 }: {
   // target is set when a date in the text sends the entry elsewhere.
-  onSubmit: (type: EntryType, text: string, media: Prepared[], target?: Target) => Promise<unknown>
+  // Resolves to the new entry's id.
+  onSubmit: (type: EntryType, text: string, media: Prepared[], target?: Target) => Promise<number>
   // The page being written on; dates are only read where this is given.
   here?: Target
   children?: ComponentChildren
@@ -128,9 +129,12 @@ export function Composer({
     setBusy(true)
     setError('')
     try {
-      if (when) await onSubmit(type, when.text || value, media, { log: when.log, key: when.key })
-      else await onSubmit(type, value, media)
-      if (bell && day) openInCalendar(reminderFor(when?.text || value, day))
+      const id = when ? await onSubmit(type, when.text || value, media, { log: when.log, key: when.key }) : await onSubmit(type, value, media)
+      if (bell && day) {
+        const reminder = reminderFor(when?.text || value, day)
+        await updateEntry(id, { remindAt: reminder.alarm.getTime() })
+        openInCalendar(reminder)
+      }
       setSentTo(when)
       setText('')
       setMedia([])

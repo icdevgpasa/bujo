@@ -18,6 +18,8 @@ export interface Entry {
   updatedAt: number
   // Set on the copy created by migration, pointing at the original entry.
   from?: number
+  // When the Calendar reminder made from this entry rings (ms).
+  remindAt?: number
 }
 
 // An attachment. The table predates audio and video, hence the name; rows
@@ -108,7 +110,7 @@ export async function addMedia(entryId: number, media: Prepared[]) {
   await db.photos.bulkAdd(media.map((m) => ({ entryId, ...m, createdAt: now })))
 }
 
-export function updateEntry(id: number, patch: Partial<Pick<Entry, 'text' | 'status' | 'type'>>) {
+export function updateEntry(id: number, patch: Partial<Pick<Entry, 'text' | 'status' | 'type' | 'remindAt'>>) {
   return db.entries.update(id, { ...patch, updatedAt: Date.now() })
 }
 

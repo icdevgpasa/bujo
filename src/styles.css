@@ -726,3 +726,17 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 .reminder-settings { margin: 8px 0 0 32px; }
 .reminder-settings p { margin: 12px 0 6px; }
+.entry .remind { font-family: var(--print); font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+
+/* ---- Settings page: one card per section ---- */
+.settings-section {
+  margin: 0 0 14px;
+  padding: 12px 14px 16px;
+  background: var(--paper-lit);
+  border: 1px solid var(--edge);
+  border-radius: calc(var(--radius) * 2);
+}
+.settings-section h2 { margin: 0 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--edge); }
+.settings-section .toggle { margin-top: 8px; }
+.settings-section .facts { margin-bottom: 4px; }
+.settings-section > p.small { margin: 0 0 12px; line-height: 20px; }
