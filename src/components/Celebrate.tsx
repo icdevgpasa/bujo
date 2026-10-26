@@ -1,10 +1,12 @@
-import { useEffect, useMemo } from 'preact/hooks'
+import { useEffect, useMemo, useState } from 'preact/hooks'
 
 // A little party for a finished task: a rubber stamp from a grinning horse,
 // confetti and a short fanfare. Tapping anywhere moves on straight away.
 
 const STAMPS = ['APPROVED', 'SZACUNEK', 'PETARDA!', 'KOZAK!', 'BRAWO!', 'MISTRZ!']
-const HEROES = ['🐴', '🦄', '🐎']
+// Anrzej's pick. Loaded from Tenor and cached by the service worker; if it
+// can't load (offline before the first view), a horse emoji stands in.
+export const HORSE_GIF = 'https://c.tenor.com/121RkGxcIOQAAAAC/tenor.gif'
 const COLORS = ['#e3a24a', '#d0343a', '#12715f', '#3f6fd8', '#f2c94c', '#b05cc8']
 const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]
 
@@ -31,7 +33,7 @@ export function fanfare(ctx?: AudioContext) {
 
 export function Celebrate({ onDone }: { onDone: () => void }) {
   const stamp = useMemo(() => pick(STAMPS), [])
-  const hero = useMemo(() => pick(HEROES), [])
+  const [gifFailed, setGifFailed] = useState(false)
   const confetti = useMemo(
     () =>
       Array.from({ length: 48 }, () => ({
@@ -46,7 +48,7 @@ export function Celebrate({ onDone }: { onDone: () => void }) {
   )
 
   useEffect(() => {
-    const timer = setTimeout(onDone, 2200)
+    const timer = setTimeout(onDone, 3000)
     return () => clearTimeout(timer)
   }, [onDone])
 
@@ -66,7 +68,11 @@ export function Celebrate({ onDone }: { onDone: () => void }) {
           />
         ))}
       </div>
-      <div class="hero" aria-hidden="true">{hero}</div>
+      {gifFailed ? (
+        <div class="hero" aria-hidden="true">🐴</div>
+      ) : (
+        <img class="hero-gif" src={HORSE_GIF} alt="" onError={() => setGifFailed(true)} />
+      )}
       <div class="stamp">{stamp}</div>
     </div>
   )
