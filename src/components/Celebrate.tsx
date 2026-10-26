@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks'
 
 // A little party for a finished task: a rubber stamp from a grinning horse,
-// confetti and a short fanfare. Tapping anywhere moves on straight away.
+// confetti (the fanfare is played by whoever opens this). Tapping anywhere moves on straight away.
 
 const STAMPS = ['APPROVED', 'SZACUNEK', 'PETARDA!', 'KOZAK!', 'BRAWO!', 'MISTRZ!']
 // Anrzej's pick. Loaded from Tenor and cached by the service worker; if it
@@ -9,27 +9,6 @@ const STAMPS = ['APPROVED', 'SZACUNEK', 'PETARDA!', 'KOZAK!', 'BRAWO!', 'MISTRZ!
 export const HORSE_GIF = 'https://c.tenor.com/121RkGxcIOQAAAAC/tenor.gif'
 const COLORS = ['#e3a24a', '#d0343a', '#12715f', '#3f6fd8', '#f2c94c', '#b05cc8']
 const pick = <T,>(list: readonly T[]) => list[Math.floor(Math.random() * list.length)]
-
-export function fanfare(ctx?: AudioContext) {
-  if (!ctx) return
-  ctx.resume?.()
-  // Ta-da: a quick rising C major arpeggio, the last note held.
-  const notes = [523, 659, 784, 1046]
-  notes.forEach((freq, i) => {
-    const at = ctx.currentTime + i * 0.11
-    const length = i === notes.length - 1 ? 0.7 : 0.16
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.type = 'triangle'
-    osc.frequency.value = freq
-    gain.gain.setValueAtTime(0.0001, at)
-    gain.gain.exponentialRampToValueAtTime(0.35, at + 0.02)
-    gain.gain.exponentialRampToValueAtTime(0.0001, at + length)
-    osc.connect(gain).connect(ctx.destination)
-    osc.start(at)
-    osc.stop(at + length + 0.05)
-  })
-}
 
 export function Celebrate({ onDone }: { onDone: () => void }) {
   const stamp = useMemo(() => pick(STAMPS), [])

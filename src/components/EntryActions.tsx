@@ -8,7 +8,7 @@ import { describeAttachments, placeholderFor } from './attachments'
 import { BULLET, TYPE_LABEL } from './bullets'
 import { primeKeyboard } from '../keyboard'
 import { focusOn, MAX_STARS } from '../focus'
-import { FocusTimer, TIMER_MINUTES, unlockAudio } from './FocusTimer'
+import { FocusTimer, primeSound, TIMER_MINUTES } from './FocusTimer'
 import { alarmLabel, openInCalendar, reminderFor, remindersOn } from '../reminders'
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
@@ -51,7 +51,7 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(entry.text)
   const [type, setType] = useState(entry.type)
-  const [timer, setTimer] = useState<{ minutes: number; audio?: AudioContext }>()
+  const [timer, setTimer] = useState<{ minutes: number; audio?: HTMLAudioElement }>()
   const [stepText, setStepText] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState('')
@@ -156,7 +156,7 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
       {focusOn('bujo:timer') && entry.status === 'open' && (
         <div class="chips">
           {TIMER_MINUTES.map((m) => (
-            <button type="button" class="chip" onClick={() => setTimer({ minutes: m, audio: unlockAudio() })}>
+            <button type="button" class="chip" onClick={() => setTimer({ minutes: m, audio: primeSound('chime') })}>
               ⏱ Skup się {m} min
             </button>
           ))}

@@ -982,3 +982,9 @@ button:disabled { opacity: 0.5; cursor: default; }
 @media (prefers-reduced-motion: no-preference) {
   .celebrate .hero-gif { animation: hero-bounce 600ms cubic-bezier(0.3, 1.6, 0.5, 1) both; }
 }
+.one-pick { display: flex; align-items: center; gap: 6px; margin: 0 -12px; }
+.one-pick .one-task { flex: 1; min-width: 0; }
+.one-arrow { flex: none; width: 36px; height: 56px; font-size: 32px; line-height: 1; color: var(--ink-faint); background: none; border: 0; cursor: pointer; }
+.one-dots { display: flex; justify-content: center; gap: 6px; margin: -20px 0 24px; }
+.one-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--edge); }
+.one-dots i.on { background: var(--ink); }

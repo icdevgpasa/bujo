@@ -1,41 +1,11 @@
 import { createPortal } from 'preact/compat'
 import { useEffect, useState } from 'preact/hooks'
 import { updateEntry, type Entry } from '../db'
+import { primeSound } from '../sound'
+
+export { primeSound }
 
 export const TIMER_MINUTES = [10, 25]
-
-// iPhone only lets a page make sound after a tap, so the audio is unlocked
-// in the tap that starts the timer and kept for the chime at the end.
-export function unlockAudio(): AudioContext | undefined {
-  try {
-    const ctx = new AudioContext()
-    const silent = ctx.createBuffer(1, 1, 22050)
-    const src = ctx.createBufferSource()
-    src.buffer = silent
-    src.connect(ctx.destination)
-    src.start()
-    return ctx
-  } catch {
-    return undefined
-  }
-}
-
-function chime(ctx?: AudioContext) {
-  if (!ctx) return
-  ctx.resume?.()
-  // Three soft rising notes.
-  ;[0, 0.35, 0.7].forEach((at, i) => {
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.frequency.value = [660, 880, 1046][i]
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime + at)
-    gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + at + 0.02)
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + at + 0.6)
-    osc.connect(gain).connect(ctx.destination)
-    osc.start(ctx.currentTime + at)
-    osc.stop(ctx.currentTime + at + 0.65)
-  })
-}
 
 const R = 88
 const C = 2 * Math.PI * R
@@ -51,7 +21,8 @@ export function FocusTimer({
 }: {
   entry: Entry
   minutes: number
-  audio?: AudioContext
+  // A chime readied with primeSound in the tap that started the timer.
+  audio?: HTMLAudioElement
   onClose: () => void
   // Marks the task done; defaults to doing it here and closing.
   onDone?: () => void
@@ -68,7 +39,7 @@ export function FocusTimer({
   }, [])
 
   useEffect(() => {
-    if (finished) chime(audio)
+    if (finished) void audio?.play().catch(() => {})
   }, [finished])
 
   // Keep the screen on while counting, where the phone allows it.
