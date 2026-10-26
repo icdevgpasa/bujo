@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks'
+import { findUrl, hostOf } from '../clipboard'
 import { addDays, addMonths, dayKey, formatMonth, monthKey } from '../dates'
 import { addPhotos, deleteEntry, migrateEntry, updateEntry, type Entry, type LogKind } from '../db'
 import { TYPE_LABEL } from './bullets'
@@ -49,6 +50,7 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
     }
   }
 
+  const link = findUrl(entry.text)
   const isTask = entry.type === 'task'
   const isOpenTask = isTask && entry.status === 'open'
   const futureMonths = Array.from({ length: 6 }, (_, i) => addMonths(monthKey(), i + 1))
@@ -78,6 +80,14 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
       )}
 
       {error && <div class="error" role="alert">{error}</div>}
+
+      {link && (
+        <div class="actions">
+          <a class="button-link" href={link} target="_blank" rel="noopener noreferrer">
+            Otwórz link: {hostOf(link)}
+          </a>
+        </div>
+      )}
 
       {isTask && (
         <div class="actions">
