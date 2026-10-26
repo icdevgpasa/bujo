@@ -2,8 +2,9 @@ import { createPortal } from 'preact/compat'
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks'
 import { updateEntry, type Entry } from '../db'
 import { focusOn } from '../focus'
+import { plural } from '../plural'
 import { playNow } from '../sound'
-import { Celebrate, HORSE_GIF } from './Celebrate'
+import { Celebrate, nextGif } from './Celebrate'
 import { FocusTimer, primeSound, TIMER_MINUTES } from './FocusTimer'
 
 // One open task on the whole screen: nothing else to look at until it is
@@ -12,7 +13,10 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
   const [skipped, setSkipped] = useState<number[]>([])
   const [timer, setTimer] = useState<{ minutes: number; audio?: HTMLAudioElement }>()
   const [party, setParty] = useState(false)
-  const endParty = useCallback(() => setParty(false), [])
+  const endParty = useCallback(() => {
+    setParty(false)
+    setGif(nextGif())
+  }, [])
 
   // The tap on Zrobione is what lets the phone play the fanfare.
   const finish = (id: number) => {
@@ -21,6 +25,7 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
     return updateEntry(id, { status: 'done' })
   }
   const open = entries.filter((e) => e.type === 'task' && e.status === 'open')
+  const doneToday = entries.filter((e) => e.type === 'task' && e.status === 'done')
   const queue = [...open.filter((e) => e.star), ...open.filter((e) => !e.star)].filter((e) => !skipped.includes(e.id))
   // Which task is showing; swiping or the arrows pick another.
   const [pos, setPos] = useState(0)
@@ -29,10 +34,12 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
   const go = (step: number) => setPos(index + step)
   const touch = useRef<{ x: number; y: number }>()
 
-  // Fetch the gif early, so it is ready the moment a task is done.
+  // The next gif is picked and fetched ahead, so it is ready the moment a
+  // task is done.
+  const [gif, setGif] = useState(nextGif)
   useEffect(() => {
-    new Image().src = HORSE_GIF
-  }, [])
+    new Image().src = gif
+  }, [gif])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -71,7 +78,7 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
       }}
     >
       <button type="button" class="one-close" onClick={onClose}>Zamknij</button>
-      {party && <Celebrate onDone={endParty} />}
+      {party && <Celebrate gif={gif} onDone={endParty} />}
       {task ? (
         <>
           <p class="one-count">{queue.length === 1 ? 'Ostatnia na dziś' : `${index + 1} z ${queue.length} · przesuń, żeby wybrać inną`}</p>
@@ -99,10 +106,31 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
         </>
       ) : (
         <>
-          <p class="one-task">{open.length ? 'To wszystko na teraz.' : 'Wszystko zrobione na dziś 🎉'}</p>
+          {open.length ? (
+            <p class="one-task">To wszystko na teraz.</p>
+          ) : (
+            <div class="all-done">
+              <div class="medal" aria-hidden="true">
+                <span>🏆</span>
+              </div>
+              <h2>Wszystko zrobione!</h2>
+              <p class="all-done-sub">
+                {doneToday.length === 1 ? 'Jedno zadanie odhaczone dziś.' : `${doneToday.length} ${plural(doneToday.length, 'zadanie', 'zadania', 'zadań')} odhaczonych dziś.`} Możesz odpocząć.
+              </p>
+              {doneToday.length > 0 && (
+                <ul class="done-list">
+                  {doneToday.map((e) => (
+                    <li key={e.id}>
+                      <span aria-hidden="true">×</span> {e.text}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <div class="one-actions">
             {open.length > 0 && <button type="button" onClick={() => setSkipped([])}>Pokaż odłożone jeszcze raz</button>}
-            <button type="button" class="primary" onClick={onClose}>Zamknij</button>
+            <button type="button" class="primary" onClick={onClose}>{open.length ? 'Zamknij' : 'Super, zamknij'}</button>
           </div>
         </>
       )}

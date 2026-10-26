@@ -33,11 +33,11 @@ export default defineConfig({
         // Serves calendar files for reminders; must run before the SPA fallback.
         importScripts: ['reminder-sw.js'],
         navigateFallbackDenylist: [/reminder\.ics/],
-        // The celebration gif comes from Tenor; keep it after the first view
+        // The celebration gifs come from Tenor; keep it after the first view
         // so it also shows offline.
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/c\.tenor\.com\//,
+            urlPattern: /^https:\/\/(c|media\d*)\.tenor\.com\//,
             handler: 'CacheFirst',
             options: { cacheName: 'celebrate', cacheableResponse: { statuses: [0, 200] } },
           },
