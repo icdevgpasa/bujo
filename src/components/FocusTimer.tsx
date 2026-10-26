@@ -42,7 +42,20 @@ const C = 2 * Math.PI * R
 
 // A full-screen countdown for one task. Time is kept as an end moment, so it
 // stays right after the phone was locked or the app was in the background.
-export function FocusTimer({ entry, minutes, audio, onClose }: { entry: Entry; minutes: number; audio?: AudioContext; onClose: () => void }) {
+export function FocusTimer({
+  entry,
+  minutes,
+  audio,
+  onClose,
+  onDone,
+}: {
+  entry: Entry
+  minutes: number
+  audio?: AudioContext
+  onClose: () => void
+  // Marks the task done; defaults to doing it here and closing.
+  onDone?: () => void
+}) {
   const [end, setEnd] = useState(() => Date.now() + minutes * 60_000)
   const [total, setTotal] = useState(minutes * 60_000)
   const [now, setNow] = useState(Date.now())
@@ -86,7 +99,7 @@ export function FocusTimer({ entry, minutes, audio, onClose }: { entry: Entry; m
       </div>
       <div class="one-actions">
         {finished && entry.type === 'task' && entry.status === 'open' && (
-          <button type="button" class="primary" onClick={() => updateEntry(entry.id, { status: 'done' }).then(onClose)}>× Zrobione</button>
+          <button type="button" class="primary" onClick={() => (onDone ? onDone() : updateEntry(entry.id, { status: 'done' }).then(onClose))}>× Zrobione</button>
         )}
         <button type="button" onClick={extend}>+5 min</button>
         <button type="button" onClick={onClose}>{finished ? 'Zamknij' : 'Przerwij'}</button>

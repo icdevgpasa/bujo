@@ -918,3 +918,51 @@ button:disabled { opacity: 0.5; cursor: default; }
 .timer-track { stroke: var(--edge); }
 .timer-left { stroke: var(--ribbon); stroke-linecap: round; transition: stroke-dashoffset 250ms linear; }
 .timer-clock { position: absolute; inset: 0; display: grid; place-items: center; font-size: 48px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---- Celebration after a task in "Jedna rzecz" ---- */
+.celebrate {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  overflow: hidden;
+  background: var(--paper);
+  cursor: pointer;
+}
+.celebrate .hero { font-size: 120px; line-height: 1; }
+.celebrate .stamp {
+  padding: 6px 18px;
+  font-family: var(--print);
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #d0343a;
+  border: 5px solid #d0343a;
+  border-radius: 10px;
+  transform: rotate(-12deg);
+  mix-blend-mode: multiply;
+}
+[data-dark] .celebrate .stamp { mix-blend-mode: normal; color: #ff6b6b; border-color: #ff6b6b; }
+.confetti { position: absolute; inset: 0; pointer-events: none; }
+.confetti i { position: absolute; top: -20px; height: 14px; border-radius: 2px; opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .celebrate .hero { animation: hero-bounce 700ms cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+  .celebrate .stamp { animation: stamp-slam 420ms 250ms cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+  .confetti i { animation: confetti-fall 1.8s ease-in forwards; }
+}
+@keyframes hero-bounce {
+  0% { transform: translateY(60px) scale(0.3) rotate(-20deg); opacity: 0; }
+  60% { transform: translateY(-14px) scale(1.15) rotate(8deg); opacity: 1; }
+  100% { transform: none; }
+}
+@keyframes stamp-slam {
+  0% { transform: rotate(-12deg) scale(3); opacity: 0; }
+  100% { transform: rotate(-12deg) scale(1); opacity: 1; }
+}
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  100% { opacity: 1; transform: translate(var(--drift), 105vh) rotate(var(--spin)); }
+}
