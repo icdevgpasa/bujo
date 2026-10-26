@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import { compressPhoto } from './photos'
+import type { MediaKind, Prepared } from './media'
 
 export type EntryType = 'task' | 'event' | 'note'
 export type EntryStatus = 'open' | 'done' | 'migrated' | 'scheduled' | 'cancelled'
@@ -19,12 +19,22 @@ export interface Entry {
   from?: number
 }
 
+// An attachment. The table predates audio and video, hence the name; rows
+// without a kind are photos.
 export interface Photo {
   id: number
   entryId: number
+  kind?: MediaKind
   blob: Blob
-  thumb: Blob
+  // Missing for audio, and for a video whose preview frame could not be read.
+  thumb?: Blob
+  // Seconds, for audio and video.
+  duration?: number
   createdAt: number
+}
+
+export function kindOf(p: Pick<Photo, 'kind'>): MediaKind {
+  return p.kind ?? 'image'
 }
 
 // A habit belongs to one month, like a tracker drawn on that month's page;
@@ -69,21 +79,20 @@ export function pendingTasks(beforeDay: string) {
     .sortBy('key')
 }
 
-export async function addEntry(log: LogKind, key: string, type: EntryType, text: string, files: Blob[] = []) {
-  // Compress before the transaction: IndexedDB transactions close on unrelated awaits.
-  const photos = await Promise.all(files.map(compressPhoto))
+// Attachments arrive already prepared (see media.ts): IndexedDB transactions
+// close on unrelated awaits, so no compressing happens in here.
+export function addEntry(log: LogKind, key: string, type: EntryType, text: string, media: Prepared[] = []) {
   const now = Date.now()
   return db.transaction('rw', db.entries, db.photos, async () => {
     const id = await db.entries.add({ log, key, type, text, status: 'open', createdAt: now, updatedAt: now })
-    await db.photos.bulkAdd(photos.map((p) => ({ entryId: id, ...p, createdAt: now })))
+    await db.photos.bulkAdd(media.map((m) => ({ entryId: id, ...m, createdAt: now })))
     return id
   })
 }
 
-export async function addPhotos(entryId: number, files: Blob[]) {
-  const photos = await Promise.all(files.map(compressPhoto))
+export async function addMedia(entryId: number, media: Prepared[]) {
   const now = Date.now()
-  await db.photos.bulkAdd(photos.map((p) => ({ entryId, ...p, createdAt: now })))
+  await db.photos.bulkAdd(media.map((m) => ({ entryId, ...m, createdAt: now })))
 }
 
 export function updateEntry(id: number, patch: Partial<Pick<Entry, 'text' | 'status' | 'type'>>) {

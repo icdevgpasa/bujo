@@ -1,9 +1,13 @@
 import { useState } from 'preact/hooks'
 import { describeClipboardError, findUrl, hostOf, readClipboard } from '../clipboard'
 import { addDays, addMonths, dayKey, formatMonth, monthKey } from '../dates'
-import { addPhotos, deleteEntry, migrateEntry, updateEntry, type Entry, type LogKind } from '../db'
+import { addMedia, db, deleteEntry, kindOf, migrateEntry, updateEntry, type Entry, type LogKind } from '../db'
+import { compressPhoto, prepareMedia } from '../media'
+import { useLiveQuery } from '../useLiveQuery'
+import { describeAttachments, placeholderFor } from './attachments'
 import { TYPE_LABEL } from './bullets'
-import { PhotoPicker } from './PhotoPicker'
+import { MediaPicker } from './MediaPicker'
+import { RecordButton } from './Recorder'
 import { Sheet } from './Sheet'
 
 interface Target {
@@ -57,12 +61,18 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
       const { text: pastedText, images } = await readClipboard()
       if (!pastedText && !images.length) return setError('Schowek jest pusty.')
       if (pastedText) await updateEntry(entry.id, { text: entry.text ? `${entry.text} ${pastedText}` : pastedText })
-      if (images.length) await addPhotos(entry.id, images)
+      if (images.length) await addMedia(entry.id, await Promise.all(images.map(compressPhoto)))
       onClose()
     } catch (err) {
       setError(describeClipboardError(err))
     }
   }
+
+  // Appends attachments straight to the entry, like paste does.
+  const attach = (files: Blob[], duration?: number) =>
+    run(async () => addMedia(entry.id, await Promise.all(files.map((f) => prepareMedia(f, duration)))))()
+
+  const kinds = useLiveQuery(() => db.photos.where('entryId').equals(entry.id).toArray(), [entry.id])?.map(kindOf) ?? []
 
   const link = findUrl(entry.text)
   const isTask = entry.type === 'task'
@@ -89,7 +99,7 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
         <p class="sheet-title">
           <span class="muted">{TYPE_LABEL[entry.type]}</span>
           <br />
-          {entry.text || '(zdjęcie)'}
+          {entry.text || placeholderFor(kinds)}
         </p>
       )}
 
@@ -137,9 +147,10 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
       <div class="actions">
         {!editing && <button type="button" onClick={() => setEditing(true)}>Edytuj tekst</button>}
         <button type="button" onClick={pasteInto}>📋 Wklej ze schowka</button>
-        <PhotoPicker onPick={(files) => run(() => addPhotos(entry.id, files))()}>📷 Dodaj zdjęcie</PhotoPicker>
+        <MediaPicker onPick={(files) => attach(files)}>📷 Dodaj zdjęcie lub film</MediaPicker>
+        <RecordButton class="photo-button" onRecorded={(audio, seconds) => attach([audio], seconds)}>🎙 Nagraj notatkę głosową</RecordButton>
         <button type="button" class={confirmDelete ? 'danger' : ''} onClick={confirmDelete ? run(() => deleteEntry(entry.id)) : () => setConfirmDelete(true)}>
-          {confirmDelete ? 'Na pewno usunąć wpis i jego zdjęcia?' : 'Usuń wpis'}
+          {confirmDelete ? (kinds.length ? `Na pewno usunąć wpis i ${describeAttachments(kinds)}?` : 'Na pewno usunąć wpis?') : 'Usuń wpis'}
         </button>
         <button type="button" onClick={onClose}>Zamknij</button>
       </div>

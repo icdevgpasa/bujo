@@ -1,58 +1,74 @@
-import { db, type Entry, type Habit, type Photo } from './db'
+import { db, kindOf, type Entry, type Habit, type Photo } from './db'
 import { dayKey } from './dates'
+import type { MediaKind } from './media'
+import { isZip, unzipBlobs, zipBlobs } from './zip'
 
 const FORMAT = 'bujo-backup'
-// v2 adds habits; v1 files (no habits) still restore.
-const VERSION = 2
+// v1: JSON with photos as data URLs. v2: adds habits. v3: a ZIP holding
+// bujo.json plus every photo, film and recording as its own file.
+const VERSION = 3
+const MANIFEST = 'bujo.json'
 const LAST_BACKUP_KEY = 'bujo:lastBackup'
 
-interface BackupPhoto extends Omit<Photo, 'blob' | 'thumb'> {
+// v1/v2: attachments inlined as data URLs.
+interface InlinePhoto extends Omit<Photo, 'blob' | 'thumb'> {
   blob: string
-  thumb: string
+  thumb?: string
 }
 
-interface BackupFile {
+// v3: attachments as files next to the manifest.
+interface FilePhoto extends Omit<Photo, 'blob' | 'thumb'> {
+  file: string
+  type: string
+  thumbFile?: string
+}
+
+interface BackupFile<P> {
   format: typeof FORMAT
   version: number
   createdAt: number
   entries: Entry[]
-  photos: BackupPhoto[]
+  photos: P[]
   habits?: Habit[]
 }
 
 export interface BackupSummary {
   entries: number
-  photos: number
+  media: MediaKind[]
   createdAt: number
-}
-
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(blob)
-  })
 }
 
 async function dataUrlToBlob(url: string): Promise<Blob> {
   return (await fetch(url)).blob()
 }
 
-// One self-contained JSON file: entries as-is, photos inlined as data URLs.
+const EXTENSIONS: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
+  'audio/mp4': 'm4a',
+  'audio/webm': 'webm',
+  'video/webm': 'webm',
+}
+
+function extensionFor(type: string): string {
+  return EXTENSIONS[type.split(';')[0]] ?? 'bin'
+}
+
 export async function createBackup(): Promise<File> {
   const [entries, photos, habits] = await Promise.all([db.entries.toArray(), db.photos.toArray(), db.habits.toArray()])
-  const backup: BackupFile = {
-    format: FORMAT,
-    version: VERSION,
-    createdAt: Date.now(),
-    entries,
-    habits,
-    photos: await Promise.all(
-      photos.map(async (p) => ({ ...p, blob: await blobToDataUrl(p.blob), thumb: await blobToDataUrl(p.thumb) })),
-    ),
-  }
-  return new File([JSON.stringify(backup)], `bujo-kopia-${dayKey()}.json`, { type: 'application/json' })
+  const files: { name: string; data: Blob }[] = []
+  const listed: FilePhoto[] = photos.map(({ blob, thumb, ...rest }) => {
+    const file = `media/${rest.id}.${extensionFor(blob.type)}`
+    files.push({ name: file, data: blob })
+    const thumbFile = thumb ? `media/${rest.id}-miniatura.jpg` : undefined
+    if (thumb && thumbFile) files.push({ name: thumbFile, data: thumb })
+    return { ...rest, file, type: blob.type, thumbFile }
+  })
+  const manifest: BackupFile<FilePhoto> = { format: FORMAT, version: VERSION, createdAt: Date.now(), entries, habits, photos: listed }
+  const zip = await zipBlobs([{ name: MANIFEST, data: new Blob([JSON.stringify(manifest)], { type: 'application/json' }) }, ...files])
+  return new File([zip], `bujo-kopia-${dayKey()}.zip`, { type: 'application/zip' })
 }
 
 // iOS has no real downloads folder in a home-screen app; the share sheet's
@@ -81,26 +97,74 @@ export async function saveBackup(file: File): Promise<'shared' | 'downloaded' | 
   return 'downloaded'
 }
 
-export async function readBackup(file: Blob): Promise<{ summary: BackupSummary; restore: () => Promise<void> }> {
-  let data: BackupFile
-  try {
-    data = JSON.parse(await file.text())
-  } catch {
-    throw new Error('To nie jest plik kopii Bujo.')
-  }
-  if (data?.format !== FORMAT || !Array.isArray(data.entries) || !Array.isArray(data.photos)) {
-    throw new Error('To nie jest plik kopii Bujo.')
-  }
+const NOT_A_BACKUP = 'To nie jest plik kopii Bujo.'
+
+function validate<P>(data: BackupFile<P> | undefined): BackupFile<P> {
+  if (data?.format !== FORMAT || !Array.isArray(data.entries) || !Array.isArray(data.photos)) throw new Error(NOT_A_BACKUP)
   if (data.version > VERSION) {
     throw new Error('Ta kopia pochodzi z nowszej wersji aplikacji. Zaktualizuj aplikację i spróbuj ponownie.')
   }
+  return data
+}
+
+async function parse<P>(blob: Blob | undefined): Promise<BackupFile<P>> {
+  let data
+  try {
+    data = JSON.parse(await blob!.text())
+  } catch {
+    throw new Error(NOT_A_BACKUP)
+  }
+  return validate<P>(data)
+}
+
+// Reads the manifest and returns a restore step that builds every Blob
+// before it touches the database, so a bad file changes nothing.
+async function open(file: Blob): Promise<{ data: BackupFile<unknown>; photos: () => Promise<Photo[]> }> {
+  if (!(await isZip(file))) {
+    // v1/v2 JSON files.
+    const data = await parse<InlinePhoto>(file)
+    return {
+      data,
+      photos: () =>
+        Promise.all(
+          data.photos.map(async (p) => ({
+            ...p,
+            blob: await dataUrlToBlob(p.blob),
+            thumb: p.thumb ? await dataUrlToBlob(p.thumb) : undefined,
+          })),
+        ),
+    }
+  }
+  let files: Map<string, Blob>
+  try {
+    files = await unzipBlobs(file)
+  } catch {
+    throw new Error(NOT_A_BACKUP)
+  }
+  const data = await parse<FilePhoto>(files.get(MANIFEST))
   return {
-    summary: { entries: data.entries.length, photos: data.photos.length, createdAt: data.createdAt },
+    data,
+    photos: async () =>
+      data.photos.map(({ file: name, type, thumbFile, ...rest }) => {
+        const blob = files.get(name)
+        const thumb = thumbFile ? files.get(thumbFile) : undefined
+        if (!blob) throw new Error('W kopii brakuje pliku. Kopia jest niepełna albo uszkodzona.')
+        // Re-type the slices, so films and recordings play back after restore.
+        return { ...rest, blob: new Blob([blob], { type }), thumb: thumb && new Blob([thumb], { type: 'image/jpeg' }) }
+      }),
+  }
+}
+
+export async function readBackup(file: Blob): Promise<{ summary: BackupSummary; restore: () => Promise<void> }> {
+  const { data, photos: loadPhotos } = await open(file)
+  return {
+    summary: {
+      entries: data.entries.length,
+      media: (data.photos as Pick<Photo, 'kind'>[]).map(kindOf),
+      createdAt: data.createdAt,
+    },
     restore: async () => {
-      // Decode every photo before touching the database so a bad file changes nothing.
-      const photos: Photo[] = await Promise.all(
-        data.photos.map(async (p) => ({ ...p, blob: await dataUrlToBlob(p.blob), thumb: await dataUrlToBlob(p.thumb) })),
-      )
+      const photos = await loadPhotos()
       await db.transaction('rw', db.entries, db.photos, db.habits, async () => {
         await db.entries.clear()
         await db.photos.clear()
