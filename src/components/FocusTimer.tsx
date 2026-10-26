@@ -89,6 +89,12 @@ export function FocusTimer({
 
   return createPortal(
     <div class="one-thing focus-timer" role="dialog" aria-modal="true" aria-label="Timer skupienia">
+      {!finished && (
+        <p class="screen-note" role="note">
+          <b>📱 Nie blokuj telefonu</b>
+          Zostaw ekran włączony i aplikację otwartą, inaczej dźwięk zagra dopiero po powrocie.
+        </p>
+      )}
       <p class="one-task">{entry.text}</p>
       <div class="timer-ring" role="timer" aria-label={finished ? 'Koniec' : `Zostało ${clock}`}>
         <svg viewBox="0 0 200 200" aria-hidden="true">

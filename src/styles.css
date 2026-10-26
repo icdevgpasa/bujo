@@ -966,3 +966,15 @@ button:disabled { opacity: 0.5; cursor: default; }
   0% { opacity: 1; transform: translate(0, 0) rotate(0); }
   100% { opacity: 1; transform: translate(var(--drift), 105vh) rotate(var(--spin)); }
 }
+.screen-note {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ribbon) 14%, var(--paper-lit));
+  border: 2px solid var(--ribbon);
+  border-radius: var(--radius);
+}
+.screen-note b { display: block; margin-bottom: 2px; font-size: 18px; line-height: 24px; }
