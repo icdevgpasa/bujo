@@ -4,6 +4,16 @@ import { migrateEntry, pendingTasks, updateEntry } from '../db'
 import { useLiveQuery } from '../useLiveQuery'
 import { Sheet } from './Sheet'
 
+// Polish counts: 1 zadanie, 2-4 zadania, 5+ zadań (12-14 take the last form).
+function pendingLabel(n: number): string {
+  if (n === 1) return 'Jedno zadanie czeka z poprzednich dni'
+  const last = n % 10
+  const teens = n % 100 >= 12 && n % 100 <= 14
+  return last >= 2 && last <= 4 && !teens
+    ? `${n} zadania czekają z poprzednich dni`
+    : `${n} zadań czeka z poprzednich dni`
+}
+
 // Daily ritual: decide what to do with every task still open from earlier days.
 export function MigrationReview() {
   const today = dayKey()
@@ -21,7 +31,8 @@ export function MigrationReview() {
   return (
     <>
       <button type="button" class="banner" onClick={() => setOpen(true)}>
-        {pending.length === 1 ? 'Masz 1 niezrobione zadanie' : `Niezrobione zadania z poprzednich dni: ${pending.length}`} · Przejrzyj
+        {pendingLabel(pending.length)}
+        <span class="banner-cta">Przejrzyj</span>
       </button>
       {open && (
         <Sheet onClose={() => setOpen(false)} label="Migracja zadań">
@@ -30,7 +41,7 @@ export function MigrationReview() {
             {pending.map((task) => (
               <li key={task.id}>
                 <div>
-                  {task.text}
+                  <span class="task">{task.text}</span>
                   <br />
                   <span class="muted small">{formatDay(task.key)}</span>
                 </div>

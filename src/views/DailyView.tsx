@@ -1,7 +1,7 @@
 import { Composer } from '../components/Composer'
 import { EntryList } from '../components/EntryList'
 import { MigrationReview } from '../components/MigrationReview'
-import { addDays, dayKey, formatDay } from '../dates'
+import { addDays, dayKey, formatDay, weekdayLong } from '../dates'
 import { addEntry, entriesFor } from '../db'
 import { href } from '../router'
 import { useLiveQuery } from '../useLiveQuery'
@@ -11,9 +11,13 @@ export function DailyView({ day }: { day: string }) {
   const isToday = day === dayKey()
   return (
     <>
+      {isToday && <div class="ribbon" aria-hidden="true" />}
       <header class="page-header">
         <a href={href.day(addDays(day, -1))} aria-label="Poprzedni dzień">‹</a>
-        <h1>{formatDay(day)}</h1>
+        <h1>
+          {formatDay(day)}
+          <span class="weekday">{weekdayLong(day)}</span>
+        </h1>
         <a href={href.day(addDays(day, 1))} aria-label="Następny dzień">›</a>
       </header>
       {!isToday && <a class="back-today" href={href.day()}>Wróć do dziś</a>}
