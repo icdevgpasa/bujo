@@ -896,3 +896,25 @@ button:disabled { opacity: 0.5; cursor: default; }
 @media (prefers-reduced-motion: no-preference) {
   .one-task { animation: fade-in 200ms ease-out; }
 }
+
+/* ---- Steps and focus timer ---- */
+.step-count { font-family: var(--print); font-size: 13px; color: var(--ink-soft); }
+.steps-list { list-style: none; margin: 0 0 6px; padding: 0; }
+.entry .steps-list button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 3px 0; text-align: left; font-size: 14px; line-height: 20px; color: var(--ink); }
+.steps-list .done button { color: var(--ink-faint); text-decoration: line-through; }
+.step-box { flex: none; display: inline-grid; place-items: center; width: 16px; height: 16px; font-size: 13px; line-height: 1; border: 1.5px solid var(--ink-soft); border-radius: 3px; }
+.steps-edit { list-style: none; margin: 0 0 8px; padding: 0; }
+.steps-edit li { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; border-bottom: 1px solid var(--edge); }
+.step-add { display: flex; gap: 8px; margin-bottom: 8px; }
+.step-add input { flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; font-size: 16px; color: var(--ink); background: var(--paper-lit); border: 1px solid var(--edge); border-radius: var(--radius); }
+.step-add button { min-height: 44px; padding: 0 14px; background: var(--paper-lit); border: 1px solid var(--edge); border-radius: var(--radius); cursor: pointer; }
+.one-timers { display: flex; gap: 10px; }
+.one-timers button { flex: 1; }
+.focus-timer { align-items: stretch; text-align: center; }
+.focus-timer .one-task { margin-bottom: 20px; font-size: 30px; line-height: 36px; }
+.timer-ring { position: relative; width: min(70vw, 280px); margin: 0 auto 32px; aspect-ratio: 1; }
+.timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer-track, .timer-left { fill: none; stroke-width: 10; }
+.timer-track { stroke: var(--edge); }
+.timer-left { stroke: var(--ribbon); stroke-linecap: round; transition: stroke-dashoffset 250ms linear; }
+.timer-clock { position: absolute; inset: 0; display: grid; place-items: center; font-size: 48px; font-weight: 600; font-variant-numeric: tabular-nums; }

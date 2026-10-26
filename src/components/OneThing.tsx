@@ -1,11 +1,14 @@
 import { createPortal } from 'preact/compat'
 import { useEffect, useState } from 'preact/hooks'
 import { updateEntry, type Entry } from '../db'
+import { focusOn } from '../focus'
+import { FocusTimer, TIMER_MINUTES, unlockAudio } from './FocusTimer'
 
 // One open task on the whole screen: nothing else to look at until it is
 // done or put aside. Starred tasks come first.
 export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () => void }) {
   const [skipped, setSkipped] = useState<number[]>([])
+  const [timer, setTimer] = useState<{ minutes: number; audio?: AudioContext }>()
   const open = entries.filter((e) => e.type === 'task' && e.status === 'open')
   const queue = [...open.filter((e) => e.star), ...open.filter((e) => !e.star)].filter((e) => !skipped.includes(e.id))
   const task = queue[0]
@@ -15,6 +18,8 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
     addEventListener('keydown', onKey)
     return () => removeEventListener('keydown', onKey)
   }, [onClose])
+
+  if (timer && task) return <FocusTimer entry={task} minutes={timer.minutes} audio={timer.audio} onClose={() => setTimer(undefined)} />
 
   return createPortal(
     <div class="one-thing" role="dialog" aria-modal="true" aria-label="Jedna rzecz">
@@ -26,6 +31,13 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
           <div class="one-actions">
             <button type="button" class="primary" onClick={() => updateEntry(task.id, { status: 'done' })}>× Zrobione</button>
             <button type="button" onClick={() => setSkipped((s) => [...s, task.id])}>Nie teraz</button>
+            {focusOn('bujo:timer') && (
+              <div class="one-timers">
+                {TIMER_MINUTES.map((m) => (
+                  <button type="button" onClick={() => setTimer({ minutes: m, audio: unlockAudio() })}>⏱ {m} min</button>
+                ))}
+              </div>
+            )}
           </div>
         </>
       ) : (

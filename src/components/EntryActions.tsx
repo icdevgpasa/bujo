@@ -8,6 +8,7 @@ import { describeAttachments, placeholderFor } from './attachments'
 import { BULLET, TYPE_LABEL } from './bullets'
 import { primeKeyboard } from '../keyboard'
 import { focusOn, MAX_STARS } from '../focus'
+import { FocusTimer, TIMER_MINUTES, unlockAudio } from './FocusTimer'
 import { alarmLabel, openInCalendar, reminderFor, remindersOn } from '../reminders'
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
@@ -50,6 +51,8 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
   const [editing, setEditing] = useState(false)
   const [text, setText] = useState(entry.text)
   const [type, setType] = useState(entry.type)
+  const [timer, setTimer] = useState<{ minutes: number; audio?: AudioContext }>()
+  const [stepText, setStepText] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [error, setError] = useState('')
 
@@ -86,6 +89,16 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
   const isTask = entry.type === 'task'
   const isOpenTask = isTask && entry.status === 'open'
   const futureMonths = Array.from({ length: 6 }, (_, i) => addMonths(monthKey(), i + 1))
+
+  const addStep = async (e: Event) => {
+    e.preventDefault()
+    const text = stepText.trim()
+    if (!text) return
+    await updateEntry(entry.id, { steps: [...(entry.steps ?? []), { text, done: false }] })
+    setStepText('')
+  }
+
+  if (timer) return <FocusTimer entry={entry} minutes={timer.minutes} audio={timer.audio} onClose={onClose} />
 
   // Editing takes over the whole screen; Save returns to the page.
   if (editing)
@@ -138,6 +151,36 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
             Otwórz link: {hostOf(link)}
           </a>
         </div>
+      )}
+
+      {focusOn('bujo:timer') && entry.status === 'open' && (
+        <div class="chips">
+          {TIMER_MINUTES.map((m) => (
+            <button type="button" class="chip" onClick={() => setTimer({ minutes: m, audio: unlockAudio() })}>
+              ⏱ Skup się {m} min
+            </button>
+          ))}
+        </div>
+      )}
+
+      {focusOn('bujo:steps') && isOpenTask && (
+        <>
+          <h3>Kroki</h3>
+          {entry.steps && entry.steps.length > 0 && (
+            <ul class="steps-edit">
+              {entry.steps.map((step, i) => (
+                <li key={i}>
+                  <span class={step.done ? 'muted' : ''}>{step.done ? '× ' : '• '}{step.text}</span>
+                  <button type="button" class="link" aria-label={`Usuń krok ${step.text}`} onClick={() => updateEntry(entry.id, { steps: entry.steps!.filter((_, j) => j !== i) })}>usuń</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <form class="step-add" onSubmit={addStep}>
+            <input value={stepText} onInput={(e) => setStepText(e.currentTarget.value)} placeholder="Mały krok, np. „umyć naczynia”" enterKeyHint="enter" aria-label="Nowy krok" />
+            <button type="submit" disabled={!stepText.trim()}>Dodaj</button>
+          </form>
+        </>
       )}
 
       {focusOn('bujo:top3') && entry.log === 'daily' && entry.status === 'open' && (
