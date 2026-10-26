@@ -156,7 +156,10 @@ export function MonthlyView({ month }: { month: string }) {
         <EntryList entries={tasks} empty="Brak zadań na ten miesiąc." />
       </section>
 
-      <Composer onSubmit={(type, text, files) => addEntry('monthly', month, type, text, files)} />
+      <Composer
+        here={{ log: 'monthly', key: month }}
+        onSubmit={(type, text, media, to) => addEntry(to?.log ?? 'monthly', to?.key ?? month, type, text, media)}
+      />
       {editing && (
         <HabitSheet
           habit={habits?.find((h) => h.id === editing.id) ?? editing}
