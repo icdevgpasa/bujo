@@ -6,11 +6,16 @@ import { backupIsDue } from '../backup'
 import { addEntry, db, entriesFor } from '../db'
 import { href } from '../router'
 import { useLiveQuery } from '../useLiveQuery'
+import { useSwipe } from '../useSwipe'
 
 export function DailyView({ day }: { day: string }) {
   const entries = useLiveQuery(() => entriesFor('daily', day), [day])
   const isToday = day === dayKey()
   const total = useLiveQuery(() => db.entries.count(), [])
+  useSwipe(
+    () => (location.hash = href.day(addDays(day, 1))),
+    () => (location.hash = href.day(addDays(day, -1))),
+  )
   return (
     <>
       <header class="page-header">

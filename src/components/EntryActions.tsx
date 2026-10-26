@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks'
-import { findUrl, hostOf } from '../clipboard'
+import { describeClipboardError, findUrl, hostOf, readClipboard } from '../clipboard'
 import { addDays, addMonths, dayKey, formatMonth, monthKey } from '../dates'
 import { addPhotos, deleteEntry, migrateEntry, updateEntry, type Entry, type LogKind } from '../db'
 import { TYPE_LABEL } from './bullets'
@@ -47,6 +47,20 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Coś poszło nie tak')
+    }
+  }
+
+  // Appends straight to the entry: unlike the composer there is nothing to
+  // review first, and edit/delete are one tap away if it was the wrong thing.
+  const pasteInto = async () => {
+    try {
+      const { text: pastedText, images } = await readClipboard()
+      if (!pastedText && !images.length) return setError('Schowek jest pusty.')
+      if (pastedText) await updateEntry(entry.id, { text: entry.text ? `${entry.text} ${pastedText}` : pastedText })
+      if (images.length) await addPhotos(entry.id, images)
+      onClose()
+    } catch (err) {
+      setError(describeClipboardError(err))
     }
   }
 
@@ -122,6 +136,7 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
 
       <div class="actions">
         {!editing && <button type="button" onClick={() => setEditing(true)}>Edytuj tekst</button>}
+        <button type="button" onClick={pasteInto}>📋 Wklej ze schowka</button>
         <PhotoPicker onPick={(files) => run(() => addPhotos(entry.id, files))()}>📷 Dodaj zdjęcie</PhotoPicker>
         <button type="button" class={confirmDelete ? 'danger' : ''} onClick={confirmDelete ? run(() => deleteEntry(entry.id)) : () => setConfirmDelete(true)}>
           {confirmDelete ? 'Na pewno usunąć wpis i jego zdjęcia?' : 'Usuń wpis'}
