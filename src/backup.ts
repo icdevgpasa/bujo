@@ -1,8 +1,9 @@
-import { db, type Entry, type Photo } from './db'
+import { db, type Entry, type Habit, type Photo } from './db'
 import { dayKey } from './dates'
 
 const FORMAT = 'bujo-backup'
-const VERSION = 1
+// v2 adds habits; v1 files (no habits) still restore.
+const VERSION = 2
 const LAST_BACKUP_KEY = 'bujo:lastBackup'
 
 interface BackupPhoto extends Omit<Photo, 'blob' | 'thumb'> {
@@ -16,6 +17,7 @@ interface BackupFile {
   createdAt: number
   entries: Entry[]
   photos: BackupPhoto[]
+  habits?: Habit[]
 }
 
 export interface BackupSummary {
@@ -39,12 +41,13 @@ async function dataUrlToBlob(url: string): Promise<Blob> {
 
 // One self-contained JSON file: entries as-is, photos inlined as data URLs.
 export async function createBackup(): Promise<File> {
-  const [entries, photos] = await Promise.all([db.entries.toArray(), db.photos.toArray()])
+  const [entries, photos, habits] = await Promise.all([db.entries.toArray(), db.photos.toArray(), db.habits.toArray()])
   const backup: BackupFile = {
     format: FORMAT,
     version: VERSION,
     createdAt: Date.now(),
     entries,
+    habits,
     photos: await Promise.all(
       photos.map(async (p) => ({ ...p, blob: await blobToDataUrl(p.blob), thumb: await blobToDataUrl(p.thumb) })),
     ),
@@ -98,11 +101,13 @@ export async function readBackup(file: Blob): Promise<{ summary: BackupSummary; 
       const photos: Photo[] = await Promise.all(
         data.photos.map(async (p) => ({ ...p, blob: await dataUrlToBlob(p.blob), thumb: await dataUrlToBlob(p.thumb) })),
       )
-      await db.transaction('rw', db.entries, db.photos, async () => {
+      await db.transaction('rw', db.entries, db.photos, db.habits, async () => {
         await db.entries.clear()
         await db.photos.clear()
+        await db.habits.clear()
         await db.entries.bulkPut(data.entries)
         await db.photos.bulkPut(photos)
+        await db.habits.bulkPut(data.habits ?? [])
       })
     },
   }
