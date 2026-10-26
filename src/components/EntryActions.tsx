@@ -7,6 +7,7 @@ import { useLiveQuery } from '../useLiveQuery'
 import { describeAttachments, placeholderFor } from './attachments'
 import { TYPE_LABEL } from './bullets'
 import { primeKeyboard } from '../keyboard'
+import { openInCalendar, reminderFor, remindersOn } from '../reminders'
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
 import { Sheet } from './Sheet'
@@ -111,6 +112,14 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
           <a class="button-link" href={link} target="_blank" rel="noopener noreferrer">
             Otwórz link: {hostOf(link)}
           </a>
+        </div>
+      )}
+
+      {remindersOn() && entry.log === 'daily' && entry.status === 'open' && (
+        <div class="actions">
+          <button type="button" onClick={() => openInCalendar(reminderFor(entry.text, entry.key))}>
+            🔔 Przypomnij: {reminderFor(entry.text, entry.key).label}
+          </button>
         </div>
       )}
 
