@@ -32,3 +32,7 @@ Każda osoba instaluje aplikację na swoim telefonie i ma własne, niezależne d
 Do wpisu można dodać zdjęcia, filmy (do ok. 1 minuty i 100 MB) oraz notatki głosowe nagrane w aplikacji. Zdjęcia są zmniejszane, filmy i nagrania zapisywane bez zmian.
 
 Kopia zapasowa to plik ZIP: `bujo.json` z wpisami i nawykami oraz katalog `media/` z każdym załącznikiem jako osobnym plikiem. Starsze kopie w formacie JSON nadal da się przywrócić.
+
+## Indeks
+
+Zakładka Indeks ma wyszukiwarkę po wszystkich wpisach (bez względu na wielkość liter i polskie znaki) oraz kolekcje, czyli strony na listy bez daty, np. książki do przeczytania.

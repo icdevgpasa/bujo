@@ -31,6 +31,8 @@ function targetsFor(entry: Entry): Target[] {
         { label: 'Na dziś', log: 'daily', key: today },
         { label: 'Na następny miesiąc', log: 'monthly', key: addMonths(entry.key, 1) },
       ]
+    case 'collection':
+      return [{ label: 'Na dziś', log: 'daily', key: today }]
     case 'future':
       return [
         { label: 'Na dziś', log: 'daily', key: today },

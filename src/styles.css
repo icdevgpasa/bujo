@@ -309,6 +309,35 @@ section:first-of-type h2 { margin-top: 4px; }
   border-radius: 3px;
 }
 
+/* ---- Index ---- */
+.search {
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  font-family: var(--hand);
+  font-size: 21px;
+  background: var(--paper-lit);
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+}
+.search + section h2 { margin-top: var(--rhythm); }
+.search::placeholder { color: var(--ink-faint); }
+.results, .collections { list-style: none; margin: 0; padding: 0; }
+.results a { display: flex; align-items: flex-start; padding: 4px 0; text-decoration: none; }
+.results .bullet { flex: none; width: 28px; font-size: 17px; line-height: var(--rhythm); }
+.result-body { flex: 1; min-width: 0; }
+.results .text { display: block; font-family: var(--hand); font-size: 21px; line-height: var(--rhythm); overflow-wrap: anywhere; }
+.results .place { display: block; font-size: 12px; line-height: 16px; color: var(--ink-soft); }
+.results .place::first-letter { text-transform: uppercase; }
+/* Like the contents page of a notebook: name, dotted leader, count. */
+.collections a { display: flex; align-items: baseline; gap: 6px; height: var(--rhythm); text-decoration: none; }
+.collections .name { font-family: var(--hand); font-size: 21px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.collections a::after { content: ""; order: 1; flex: 1; min-width: 12px; border-bottom: 1px dotted var(--ink-faint); }
+.collections .count { order: 2; font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+button.quiet-link { background: none; border: 0; padding: 0; cursor: pointer; }
+.title-button { max-width: 100%; padding: 0; font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.header-spacer { flex: none; width: 36px; }
+
 /* ---- Composer, tabs: the desk the notebook lies on ---- */
 .composer {
   position: fixed;
