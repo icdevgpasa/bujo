@@ -191,6 +191,82 @@ section:first-of-type h2 { margin-top: 4px; }
 .calendar .today { background: linear-gradient(to right, rgb(168 32 44 / 0.08), transparent); }
 .calendar .today .num { color: var(--ink); font-weight: 600; }
 
+/* ---- Habit tracker: extra columns on the month calendar ---- */
+.section-head { display: flex; align-items: baseline; justify-content: space-between; }
+.quiet-link { color: var(--ink-soft); text-decoration: none; font-size: 14px; }
+.calendar li { display: flex; align-items: center; }
+.calendar li > a { flex: 1; min-width: 0; }
+.calendar .cells { display: flex; gap: 2px; flex: none; }
+.calendar .cell {
+  width: 26px;
+  height: var(--rhythm);
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+/* A small box to colour in, as on a paper tracker. */
+.calendar .cell::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--dot);
+  border-radius: 2px;
+}
+.calendar .cell.done::before { background: var(--ink); border-color: var(--ink); }
+.habit-head { align-items: flex-end !important; height: 76px; }
+.habit-head .fill, .habit-foot .fill { flex: 1; }
+.habit-name-head {
+  width: 26px;
+  height: 76px;
+  padding: 0 0 4px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.habit-name-head span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--hand);
+  font-size: 18px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 72px;
+}
+.habit-foot { height: var(--rhythm); font-size: 12px; color: var(--ink-soft); }
+.habit-foot .fill { padding-left: 32px; }
+.habit-foot .count { width: 26px; text-align: center; font-variant-numeric: tabular-nums; }
+.habit-add { display: flex; gap: 6px; margin-bottom: 8px; }
+.habit-add input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 10px;
+  font-family: var(--hand);
+  font-size: 20px;
+  background: var(--paper-lit);
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+}
+.habit-add button { height: 40px; padding: 0 10px; background: var(--paper-lit); border: 1px solid var(--edge); border-radius: 3px; cursor: pointer; }
+.edit .habit-name {
+  width: 100%;
+  height: 44px;
+  padding: 0 10px;
+  font-family: var(--hand);
+  font-size: 21px;
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+}
+
 /* ---- Composer, tabs: the desk the notebook lies on ---- */
 .composer {
   position: fixed;

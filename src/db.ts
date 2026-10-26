@@ -27,14 +27,29 @@ export interface Photo {
   createdAt: number
 }
 
+// A habit belongs to one month, like a tracker drawn on that month's page;
+// done holds the days of the month (1–31) it was kept.
+export interface Habit {
+  id: number
+  month: string
+  name: string
+  order: number
+  done: number[]
+  createdAt: number
+}
+
 export const db = new Dexie('bujo') as Dexie & {
   entries: EntityTable<Entry, 'id'>
   photos: EntityTable<Photo, 'id'>
+  habits: EntityTable<Habit, 'id'>
 }
 
 db.version(1).stores({
   entries: '++id, [log+key], status, createdAt',
   photos: '++id, entryId',
+})
+db.version(2).stores({
+  habits: '++id, month',
 })
 
 export function entriesFor(log: LogKind, key: string) {
@@ -104,6 +119,59 @@ export function migrateEntry(entry: Entry, log: LogKind, key: string) {
       from: entry.id,
     })
   })
+}
+
+export const MAX_HABITS = 6
+
+export function habitsFor(month: string) {
+  return db.habits.where('month').equals(month).sortBy('order')
+}
+
+export function addHabit(month: string, name: string) {
+  return db.transaction('rw', db.habits, async () => {
+    const existing = await db.habits.where('month').equals(month).toArray()
+    if (existing.length >= MAX_HABITS) throw new Error(`Zmieści się najwyżej ${MAX_HABITS} nawyków.`)
+    const order = Math.max(0, ...existing.map((h) => h.order + 1))
+    await db.habits.add({ month, name, order, done: [], createdAt: Date.now() })
+  })
+}
+
+export function toggleHabit(habit: Habit, day: number) {
+  const done = habit.done.includes(day) ? habit.done.filter((d) => d !== day) : [...habit.done, day].sort((a, b) => a - b)
+  return db.habits.update(habit.id, { done })
+}
+
+export function renameHabit(id: number, name: string) {
+  return db.habits.update(id, { name })
+}
+
+export function deleteHabit(id: number) {
+  return db.habits.delete(id)
+}
+
+// A new month starts with last month's habits, unticked, the way you'd copy
+// the tracker onto a fresh spread. Only for this month and later, so paging
+// back through old months doesn't fill them in, and only once per month, so
+// clearing a month's habits on purpose sticks.
+export async function carryOverHabits(month: string, previousMonth: string, currentMonth: string) {
+  if (month < currentMonth) return
+  const marker = `bujo:habitsCarried:${month}`
+  try {
+    if (localStorage.getItem(marker)) return
+  } catch {
+    // Storage blocked: fall back to the "month is empty" check alone.
+  }
+  await db.transaction('rw', db.habits, async () => {
+    if ((await db.habits.where('month').equals(month).count()) > 0) return
+    const previous = await db.habits.where('month').equals(previousMonth).sortBy('order')
+    const now = Date.now()
+    await db.habits.bulkAdd(previous.map((h) => ({ month, name: h.name, order: h.order, done: [], createdAt: now })))
+  })
+  try {
+    localStorage.setItem(marker, '1')
+  } catch {
+    // See above.
+  }
 }
 
 // Ask the browser not to evict our data under storage pressure.
