@@ -16,6 +16,11 @@
   --ribbon: #a8202c;
   --rhythm: 24px;
   --tabs-h: 46px;
+  /* Room for the iPhone home indicator under the tabs. The bar may overlap
+     its top edge a little, so take back 14px of the 34px inset. */
+  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - 14px));
+  /* Everything that sits above the tab bar must clear this, not --tabs-h. */
+  --bar-h: calc(var(--tabs-h) + var(--safe-bottom));
   --hand: 'Caveat', 'Segoe Script', cursive;
   --print: 'Archivo', system-ui, sans-serif;
   color-scheme: light;
@@ -51,7 +56,7 @@ a { color: inherit; }
   max-width: 560px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: max(20px, env(safe-area-inset-top)) 20px calc(var(--tabs-h) + 110px);
+  padding: max(20px, env(safe-area-inset-top)) 20px calc(var(--bar-h) + 110px);
 }
 
 .page-header {
@@ -189,7 +194,7 @@ section:first-of-type h2 { margin-top: 4px; }
 /* ---- Composer, tabs: the desk the notebook lies on ---- */
 .composer {
   position: fixed;
-  left: 0; right: 0; bottom: var(--tabs-h);
+  left: 0; right: 0; bottom: var(--bar-h);
   max-width: 560px;
   margin: 0 auto;
   padding: 6px 16px;
@@ -230,11 +235,11 @@ section:first-of-type h2 { margin-top: 4px; }
   display: flex;
   background: var(--paper-lit);
   border-top: 1px solid var(--edge);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom);
 }
 .tabs a {
   flex: 1;
-  height: var(--tabs-h);
+  height: calc(var(--tabs-h) - 1px); /* the bar's 1px top border makes up the rest */
   display: grid;
   place-items: center;
   font-size: 13px;

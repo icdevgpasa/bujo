@@ -4,6 +4,7 @@ import { addMonths, dayKey, daysOfMonth, formatMonth, weekdayShort } from '../da
 import { addEntry, entriesBetween, entriesFor } from '../db'
 import { href } from '../router'
 import { useLiveQuery } from '../useLiveQuery'
+import { useSwipe } from '../useSwipe'
 
 export function MonthlyView({ month }: { month: string }) {
   const days = daysOfMonth(month)
@@ -14,6 +15,10 @@ export function MonthlyView({ month }: { month: string }) {
     [month],
   )
   const today = dayKey()
+  useSwipe(
+    () => (location.hash = href.month(addMonths(month, 1))),
+    () => (location.hash = href.month(addMonths(month, -1))),
+  )
 
   return (
     <>
