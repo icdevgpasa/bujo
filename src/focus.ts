@@ -13,6 +13,16 @@ export const FOCUS = [
     hint: 'Gwiazdką ⭐ oznaczasz najwyżej 3 najważniejsze sprawy dnia (w menu wpisu). Reszta zwija się pod „Pozostałe”.',
   },
   {
+    key: 'bujo:steps',
+    label: 'Rozbij na kroki',
+    hint: 'W menu zadania dopiszesz małe kroki, np. „posprzątać kuchnię” → naczynia, blat, podłoga. Odhaczasz je prosto z listy.',
+  },
+  {
+    key: 'bujo:timer',
+    label: 'Timer skupienia',
+    hint: 'W menu zadania (i w „Jednej rzeczy”) przycisk ⏱ 10 lub 25 min. Na cały ekran odliczanie, na koniec dźwięk.',
+  },
+  {
     key: 'bujo:inbox',
     label: 'Zrzut z głowy',
     hint: 'Przycisk 💭 przy polu wpisu zapisuje myśl bez wybierania dnia. Na dzisiejszej stronie rozłożysz je potem na dni.',

@@ -63,8 +63,28 @@ export function EntryList({ entries, empty }: { entries: Entry[] | undefined; em
                 <button type="button" class="text" onClick={() => setOpen(entry)}>
                   {entry.star && entry.status === 'open' && <span class="star" aria-label="Najważniejsze">⭐ </span>}
                   {entry.text || <span class="muted">{placeholderFor(own.map(kindOf))}</span>}
+                  {entry.steps && entry.steps.length > 0 && (
+                    <span class="step-count"> {entry.steps.filter((s) => s.done).length}/{entry.steps.length}</span>
+                  )}
                   {entry.remindAt && <span class="remind" title="Przypomnienie w Kalendarzu"> 🔔 {alarmLabel(entry.remindAt, entry.log === 'daily' ? entry.key : undefined)}</span>}
                 </button>
+                {entry.steps && entry.steps.length > 0 && (
+                  <ul class="steps-list" aria-label="Kroki">
+                    {entry.steps.map((step, i) => (
+                      <li key={i} class={step.done ? 'done' : ''}>
+                        <button
+                          type="button"
+                          role="checkbox"
+                          aria-checked={step.done}
+                          onClick={() => updateEntry(entry.id, { steps: entry.steps!.map((s, j) => (j === i ? { ...s, done: !s.done } : s)) })}
+                        >
+                          <span class="step-box" aria-hidden="true">{step.done ? '×' : ''}</span>
+                          {step.text}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 {own.length > 0 && (
                   <div class="thumbs">
                     {own.map((p) => (

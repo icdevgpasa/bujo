@@ -25,6 +25,13 @@ export interface Entry {
   star?: boolean
   // How many times the task has been carried forward.
   moves?: number
+  // Small steps a big task is broken into.
+  steps?: Step[]
+}
+
+export interface Step {
+  text: string
+  done: boolean
 }
 
 // An attachment. The table predates audio and video, hence the name; rows
@@ -115,7 +122,7 @@ export async function addMedia(entryId: number, media: Prepared[]) {
   await db.photos.bulkAdd(media.map((m) => ({ entryId, ...m, createdAt: now })))
 }
 
-export function updateEntry(id: number, patch: Partial<Pick<Entry, 'text' | 'status' | 'type' | 'remindAt' | 'star'>>) {
+export function updateEntry(id: number, patch: Partial<Pick<Entry, 'text' | 'status' | 'type' | 'remindAt' | 'star' | 'steps'>>) {
   return db.entries.update(id, { ...patch, updatedAt: Date.now() })
 }
 
@@ -148,6 +155,7 @@ export function migrateEntry(entry: Entry, log: LogKind, key: string) {
       updatedAt: now,
       from: entry.id,
       moves: (entry.moves ?? 0) + 1,
+      steps: entry.steps,
     })
     await db.photos.where('entryId').equals(entry.id).modify({ entryId: copyId })
   })
