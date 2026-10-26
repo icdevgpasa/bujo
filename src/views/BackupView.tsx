@@ -5,6 +5,7 @@ import { db, kindOf } from '../db'
 import { plural } from '../plural'
 import { InstallGuide } from '../components/InstallGuide'
 import { isInstalled } from '../install'
+import { FOCUS, focusOn, setFocus, type FocusKey } from '../focus'
 import { HOURS, LEADS, reminderHour, reminderLead, remindersOn, setReminderHour, setReminderLead, setRemindersOn } from '../reminders'
 import { setSmartDates, smartDatesOn } from '../smartDates'
 import { currentDark, currentTheme, setDark, setTheme, THEMES, type Dark, type Theme } from '../theme'
@@ -37,6 +38,7 @@ export function BackupView() {
   const [guide, setGuide] = useState(false)
   const [smartDates, setSmartDatesState] = useState(smartDatesOn)
   const [reminders, setRemindersState] = useState(remindersOn)
+  const [focus, setFocusState] = useState(() => Object.fromEntries(FOCUS.map((f) => [f.key, focusOn(f.key)])) as Record<FocusKey, boolean>)
   const [lead, setLeadState] = useState(reminderLead)
   const [hour, setHourState] = useState(reminderHour)
 
@@ -156,6 +158,29 @@ export function BackupView() {
             <span class="muted small">„Kupić jutro chleb” trafi na jutro jako zadanie „Kupić chleb”, a „urodziny Mariusza w grudniu” do grudnia jako wydarzenie. Rozumie m.in. jutro, pojutrze, w piątek, za 3 dni, 15 listopada, w grudniu.</span>
           </span>
         </label>
+      </section>
+
+      <section class="settings-section">
+        <h2>Skupienie</h2>
+        <p class="muted small">Pomocnicy na rozproszone dni, przydatni np. przy ADHD. Włącz tylko te, które pomagają.</p>
+        {FOCUS.map((f) => (
+          <label class="toggle">
+            <input
+              type="checkbox"
+              checked={focus[f.key]}
+              onChange={(e) => {
+                const on = e.currentTarget.checked
+                setFocus(f.key, on)
+                setFocusState((s) => ({ ...s, [f.key]: on }))
+              }}
+            />
+            <span>
+              <b>{f.label}</b>
+              <br />
+              <span class="muted small">{f.hint}</span>
+            </span>
+          </label>
+        ))}
       </section>
 
       <section class="settings-section">

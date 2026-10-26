@@ -61,6 +61,7 @@ export function EntryList({ entries, empty }: { entries: Entry[] | undefined; em
               </button>
               <div class="body">
                 <button type="button" class="text" onClick={() => setOpen(entry)}>
+                  {entry.star && entry.status === 'open' && <span class="star" aria-label="Najważniejsze">⭐ </span>}
                   {entry.text || <span class="muted">{placeholderFor(own.map(kindOf))}</span>}
                   {entry.remindAt && <span class="remind" title="Przypomnienie w Kalendarzu"> 🔔 {alarmLabel(entry.remindAt, entry.log === 'daily' ? entry.key : undefined)}</span>}
                 </button>

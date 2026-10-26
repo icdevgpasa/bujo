@@ -20,6 +20,8 @@ function placeOf(entry: Entry, collections: Collection[]): { label: string; link
       const c = collections.find((x) => collectionKey(x.id) === entry.key)
       return { label: c?.name ?? 'Kolekcja', link: href.collection(Number(entry.key)) }
     }
+    case 'inbox':
+      return { label: 'Zrzut z głowy', link: href.day() }
   }
 }
 

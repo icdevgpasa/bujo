@@ -7,6 +7,7 @@ import { useLiveQuery } from '../useLiveQuery'
 import { describeAttachments, placeholderFor } from './attachments'
 import { BULLET, TYPE_LABEL } from './bullets'
 import { primeKeyboard } from '../keyboard'
+import { focusOn, MAX_STARS } from '../focus'
 import { alarmLabel, openInCalendar, reminderFor, remindersOn } from '../reminders'
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
@@ -35,6 +36,7 @@ function targetsFor(entry: Entry): Target[] {
         { label: 'Na następny miesiąc', log: 'monthly', key: addMonths(entry.key, 1) },
       ]
     case 'collection':
+    case 'inbox':
       return [{ label: 'Na dziś', log: 'daily', key: today }]
     case 'future':
       return [
@@ -135,6 +137,23 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
           <a class="button-link" href={link} target="_blank" rel="noopener noreferrer">
             Otwórz link: {hostOf(link)}
           </a>
+        </div>
+      )}
+
+      {focusOn('bujo:top3') && entry.log === 'daily' && entry.status === 'open' && (
+        <div class="actions">
+          <button
+            type="button"
+            onClick={run(async () => {
+              if (!entry.star) {
+                const starred = await db.entries.where('[log+key]').equals(['daily', entry.key]).filter((e) => !!e.star && e.status === 'open').count()
+                if (starred >= MAX_STARS) throw new Error(`Najważniejsze mogą być najwyżej ${MAX_STARS} rzeczy dziennie. Zdejmij gwiazdkę z innej.`)
+              }
+              await updateEntry(entry.id, { star: !entry.star })
+            })}
+          >
+            {entry.star ? '☆ Zdejmij z najważniejszych' : '⭐ Najważniejsze dziś'}
+          </button>
         </div>
       )}
 

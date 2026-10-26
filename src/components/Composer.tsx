@@ -1,12 +1,13 @@
 import type { ComponentChildren } from 'preact'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { describeClipboardError, findUrl, readClipboard, type Pasted } from '../clipboard'
-import { updateEntry, type EntryType, type LogKind } from '../db'
+import { addEntry, updateEntry, type EntryType, type LogKind } from '../db'
+import { focusOn } from '../focus'
 import { primeKeyboard } from '../keyboard'
 import { openInCalendar, reminderFor, remindersOn, timeIn } from '../reminders'
 import { prepareMedia, type Prepared } from '../media'
 import { href } from '../router'
-import { findWhen, guessType, smartDatesOn, type When } from '../smartDates'
+import { findWhen, guessType, smartDatesOn } from '../smartDates'
 import { describeAttachments } from './attachments'
 import { BULLET, TYPE_LABEL } from './bullets'
 import { MediaPicker } from './MediaPicker'
@@ -21,6 +22,7 @@ export interface Target {
 function linkTo({ log, key }: Target): string {
   if (log === 'daily') return href.day(key)
   if (log === 'monthly') return href.month(key)
+  if (log === 'inbox') return href.day()
   return href.future()
 }
 
@@ -46,20 +48,22 @@ export function Composer({
   const [error, setError] = useState('')
   const [writing, setWriting] = useState(false)
   const [keepHere, setKeepHere] = useState(false)
-  const [sentTo, setSentTo] = useState<When>()
+  const [sentTo, setSentTo] = useState<{ log: LogKind; key: string; label: string }>()
+  // Writing into the inbox ("zrzut z głowy") rather than onto this page.
+  const [toInbox, setToInbox] = useState(false)
   // Unset until the bell is tapped; a time in the text ("o 15") rings it.
   const [bellPicked, setBell] = useState<boolean>()
 
   // A date in the text ("jutro", "w piątek") suggests another page, unless
   // the switch on the Kopia page is off or the hint was dismissed.
-  const smart = !!here && smartDatesOn()
+  const smart = !!here && !toInbox && smartDatesOn()
   const found = smart && !keepHere ? findWhen(text) : undefined
   const when = found && !(found.log === here?.log && found.key === here?.key) ? found : undefined
   // "kupić jutro chleb" is a task, "urodziny Mariusza w grudniu" an event.
   const type = (smart && !typePicked && guessType(found?.text || text)) || chosenType
   // Reminders need a day, so they are offered only for entries landing on one.
   const day = when ? (when.log === 'daily' ? when.key : undefined) : here?.log === 'daily' ? here.key : undefined
-  const canRemind = !!day && remindersOn()
+  const canRemind = !!day && !toInbox && remindersOn()
   const bell = canRemind && (bellPicked ?? !!timeIn(text))
 
   useEffect(() => {
@@ -72,7 +76,15 @@ export function Composer({
     primeKeyboard()
     setWriting(true)
   }
-  const closeWriter = useCallback(() => setWriting(false), [])
+  const closeWriter = useCallback(() => {
+    setWriting(false)
+    setToInbox(false)
+  }, [])
+  const openInbox = () => {
+    primeKeyboard()
+    setToInbox(true)
+    setWriting(true)
+  }
 
   // Prepare attachments as they are picked, so a film that is too long is
   // turned away straight away rather than when the entry is saved.
@@ -129,13 +141,18 @@ export function Composer({
     setBusy(true)
     setError('')
     try {
-      const id = when ? await onSubmit(type, when.text || value, media, { log: when.log, key: when.key }) : await onSubmit(type, value, media)
-      if (bell && day) {
+      if (toInbox) {
+        await addEntry('inbox', 'inbox', type, value, media)
+        setSentTo({ log: 'inbox', key: 'inbox', label: 'zrzut z głowy' })
+      }
+      const id = toInbox ? undefined : when ? await onSubmit(type, when.text || value, media, { log: when.log, key: when.key }) : await onSubmit(type, value, media)
+      if (bell && day && id !== undefined) {
         const reminder = reminderFor(when?.text || value, day)
         await updateEntry(id, { remindAt: reminder.alarm.getTime() })
         openInCalendar(reminder)
       }
-      setSentTo(when)
+      if (!toInbox) setSentTo(when)
+      setToInbox(false)
       setText('')
       setMedia([])
       setKeepHere(false)
@@ -169,6 +186,11 @@ export function Composer({
       </button>
       <MediaPicker onPick={(picked) => pickAndWrite(picked)} />
       <RecordButton onRecorded={(audio, seconds) => pickAndWrite([audio], seconds)} />
+      {focusOn('bujo:inbox') && !writing && (
+        <button type="button" class="photo-button" aria-label="Zrzut z głowy" title="Zrzut z głowy: zapisz myśl bez dnia" onClick={openInbox}>
+          💭
+        </button>
+      )}
     </>
   )
 
@@ -179,8 +201,14 @@ export function Composer({
       {children}
       {sentTo && !writing && (
         <div class="sent-to" role="status">
-          Dodano na {sentTo.label}.{' '}
-          <a href={linkTo(sentTo)} onClick={() => setSentTo(undefined)}>Pokaż</a>
+          {sentTo.log === 'inbox' ? (
+            'Zapisano w zrzucie z głowy.'
+          ) : (
+            <>
+              Dodano na {sentTo.label}.{' '}
+              <a href={linkTo(sentTo)} onClick={() => setSentTo(undefined)}>Pokaż</a>
+            </>
+          )}
         </div>
       )}
       {!writing && attachments}
@@ -195,7 +223,7 @@ export function Composer({
       </div>
       {writing && (
         <Writer
-          title="Nowy wpis"
+          title={toInbox ? 'Zrzut z głowy' : 'Nowy wpis'}
           text={text}
           onText={setText}
           onPaste={onPaste}

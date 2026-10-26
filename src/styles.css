@@ -857,3 +857,42 @@ button:disabled { opacity: 0.5; cursor: default; }
 .settings-section .toggle { margin-top: 8px; }
 .settings-section .facts { margin-bottom: 4px; }
 .settings-section > p.small { margin: 0 0 12px; line-height: 20px; }
+
+/* ---- Focus helpers ---- */
+.one-start {
+  display: block;
+  width: 100%;
+  margin: 0 0 var(--rhythm);
+  padding: 10px 14px;
+  font-size: 15px;
+  text-align: left;
+  color: var(--ink);
+  background: var(--paper-lit);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.top3 h2 { margin-top: 0; }
+.rest { margin-top: 12px; }
+.rest summary { padding: 6px 0; color: var(--ink-soft); font-size: 14px; cursor: pointer; }
+.entry .star { font-size: 14px; }
+.nudge { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--ribbon); }
+.one-thing {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: max(20px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+  background: var(--paper);
+  color: var(--ink);
+}
+.one-close { position: absolute; top: max(16px, env(safe-area-inset-top)); right: 16px; padding: 8px 12px; background: none; border: 0; color: var(--ink-soft); cursor: pointer; }
+.one-count { margin: 0 0 12px; color: var(--ink-soft); font-size: 14px; }
+.one-task { margin: 0 0 32px; font-family: var(--hand); font-size-adjust: var(--hand-adjust); font-size: 38px; line-height: 44px; overflow-wrap: anywhere; }
+.one-actions { display: flex; flex-direction: column; gap: 10px; }
+.one-actions button { min-height: 52px; font-size: 17px; border: 1px solid var(--edge); border-radius: var(--radius); background: var(--paper-lit); cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) {
+  .one-task { animation: fade-in 200ms ease-out; }
+}
