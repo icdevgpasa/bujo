@@ -1,17 +1,13 @@
 import { useEffect, useState } from 'preact/hooks'
 import { addMonths, dayKey, formatDay, monthKey } from '../dates'
 import { migrateEntry, pendingTasks, updateEntry } from '../db'
+import { plural } from '../plural'
 import { useLiveQuery } from '../useLiveQuery'
 import { Sheet } from './Sheet'
 
-// Polish counts: 1 zadanie, 2-4 zadania, 5+ zadań (12-14 take the last form).
 function pendingLabel(n: number): string {
   if (n === 1) return 'Jedno zadanie czeka z poprzednich dni'
-  const last = n % 10
-  const teens = n % 100 >= 12 && n % 100 <= 14
-  return last >= 2 && last <= 4 && !teens
-    ? `${n} zadania czekają z poprzednich dni`
-    : `${n} zadań czeka z poprzednich dni`
+  return `${n} ${plural(n, 'zadanie', 'zadania', 'zadań')} ${plural(n, 'czeka', 'czekają', 'czeka')} z poprzednich dni`
 }
 
 // Daily ritual: decide what to do with every task still open from earlier days.
