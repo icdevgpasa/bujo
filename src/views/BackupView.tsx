@@ -4,6 +4,7 @@ import { describeAttachments } from '../components/attachments'
 import { db, kindOf } from '../db'
 import { plural } from '../plural'
 import { InstallGuide } from '../components/InstallGuide'
+import { Tutorial } from '../components/Tutorial'
 import { isInstalled } from '../install'
 import { FOCUS, focusOn, setFocus, type FocusKey } from '../focus'
 import { HOURS, LEADS, reminderHour, reminderLead, remindersOn, setReminderHour, setReminderLead, setRemindersOn } from '../reminders'
@@ -37,6 +38,7 @@ export function BackupView() {
   const [theme, setThemeState] = useState(currentTheme)
   const [dark, setDarkState] = useState(currentDark)
   const [guide, setGuide] = useState(false)
+  const [tutorial, setTutorial] = useState(false)
   const [smartDates, setSmartDatesState] = useState(smartDatesOn)
   const [reminders, setRemindersState] = useState(remindersOn)
   const [sharing, setSharingState] = useState(shareOn)
@@ -107,6 +109,14 @@ export function BackupView() {
       <header class="page-header">
         <h1>Ustawienia</h1>
       </header>
+
+      <section class="settings-section">
+        <h2>Samouczek</h2>
+        <p class="muted small">Sześciominutowy film o tym, jak prowadzić dziennik w Bujo i co robią poszczególne opcje.</p>
+        <div class="actions">
+          <button type="button" onClick={() => setTutorial(true)}>▶ Obejrzyj samouczek</button>
+        </div>
+      </section>
 
       <section class="settings-section">
         <h2>Wygląd</h2>
@@ -314,6 +324,7 @@ export function BackupView() {
         </p>
       )}
       {guide && <InstallGuide onClose={() => setGuide(false)} />}
+      {tutorial && <Tutorial onClose={() => setTutorial(false)} />}
     </>
   )
 }

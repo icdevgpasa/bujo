@@ -41,6 +41,13 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: { cacheName: 'celebrate', cacheableResponse: { statuses: [0, 200] } },
           },
+          {
+            // The tutorial film: kept in the cache the app fills after the
+            // first play; range requests let the player seek in that copy.
+            urlPattern: ({ url }) => url.pathname.endsWith('/tutorial/instrukcja.mp4'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'tutorial', rangeRequests: true, cacheableResponse: { statuses: [200] } },
+          },
         ],
       },
     }),

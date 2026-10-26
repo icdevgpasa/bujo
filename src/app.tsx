@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks'
 import { InstallGuide } from './components/InstallGuide'
+import { shouldShowTutorial, Tutorial } from './components/Tutorial'
 import { SettingsIcon, DayIcon, FutureIcon, IndexIcon, MonthIcon } from './components/TabIcons'
 import { monthKey } from './dates'
 import { shouldOfferInstall } from './install'
@@ -15,6 +16,7 @@ export function App() {
   const route = useRoute()
   const turn = useTurn(route)
   const [installGuide, setInstallGuide] = useState(shouldOfferInstall)
+  const [tutorial, setTutorial] = useState(shouldShowTutorial)
   const tabs = [
     { label: 'Dzień', link: href.day(), active: route.view === 'day', Glyph: DayIcon },
     { label: 'Miesiąc', link: href.month(monthKey()), active: route.view === 'month', Glyph: MonthIcon },
@@ -40,6 +42,7 @@ export function App() {
         ))}
       </nav>
       {installGuide && <InstallGuide onClose={() => setInstallGuide(false)} />}
+      {tutorial && <Tutorial onClose={() => setTutorial(false)} />}
     </>
   )
 }
