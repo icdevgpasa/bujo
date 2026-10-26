@@ -19,7 +19,20 @@ export function App() {
         <a href={href.day()} aria-current={route.view === 'day' ? 'page' : undefined}>Dzień</a>
         <a href={href.month(monthKey())} aria-current={route.view === 'month' ? 'page' : undefined}>Miesiąc</a>
         <a href={href.future()} aria-current={route.view === 'future' ? 'page' : undefined}>Przyszłość</a>
-        <a href={href.backup()} aria-current={route.view === 'backup' ? 'page' : undefined}>Kopia</a>
+        <a
+          href={href.backup()}
+          class="icon-tab"
+          aria-label="Kopia zapasowa"
+          title="Kopia zapasowa"
+          aria-current={route.view === 'backup' ? 'page' : undefined}
+        >
+          {/* A box with an arrow into it: saving everything for safekeeping. */}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 13v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6" />
+            <path d="M12 3v11" />
+            <path d="m7.5 9.5 4.5 4.5 4.5-4.5" />
+          </svg>
+        </a>
       </nav>
     </>
   )
