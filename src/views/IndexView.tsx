@@ -57,15 +57,22 @@ export function IndexView() {
         <h1>Indeks</h1>
       </header>
 
-      <input
-        class="search"
-        type="search"
-        value={query}
-        onInput={(e) => search(e.currentTarget.value)}
-        placeholder="Szukaj we wpisach…"
-        aria-label="Szukaj we wpisach"
-        enterKeyHint="search"
-      />
+      <div class="search-box">
+        <input
+          class="search"
+          type="search"
+          value={query}
+          onInput={(e) => search(e.currentTarget.value)}
+          placeholder="Szukaj we wpisach…"
+          aria-label="Szukaj we wpisach"
+          enterKeyHint="search"
+        />
+        {query && (
+          <button type="button" class="search-clear" aria-label="Wyczyść wyszukiwanie" title="Wyczyść" onClick={() => search('')}>
+            ✕
+          </button>
+        )}
+      </div>
 
       {query.trim() ? (
         <section>

@@ -326,7 +326,21 @@ section:first-of-type h2 { margin-top: 4px; }
   border: 1px solid var(--edge);
   border-radius: var(--radius);
 }
-.search + section h2 { margin-top: var(--rhythm); }
+.search-box + section h2 { margin-top: var(--rhythm); }
+.search-box { position: relative; }
+.search-box .search { padding-right: 44px; }
+/* Our own clear button, visible without focusing the field; hide Safari's. */
+.search::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.search-clear {
+  position: absolute;
+  top: 0; right: 0;
+  width: 44px; height: 40px;
+  font-size: 15px;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
 .search::placeholder { color: var(--ink-faint); }
 .results, .collections { list-style: none; margin: 0; padding: 0; }
 .results a { display: flex; align-items: flex-start; padding: 4px 0; text-decoration: none; }
@@ -458,8 +472,7 @@ button.quiet-link { background: none; border: 0; padding: 0; cursor: pointer; }
   text-decoration: none;
 }
 .tabs a[aria-current='page'] { color: var(--ink); box-shadow: inset 0 2px 0 var(--ribbon); }
-.tabs .icon-tab { flex: none; width: 56px; }
-.tabs svg { width: 20px; height: 20px; }
+.tabs svg { width: 25px; height: 25px; }
 
 .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 .chip {
