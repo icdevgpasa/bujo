@@ -4,8 +4,9 @@ import type { MediaKind, Prepared } from './media'
 export type EntryType = 'task' | 'event' | 'note'
 export type EntryStatus = 'open' | 'done' | 'migrated' | 'scheduled' | 'cancelled'
 // daily: key = YYYY-MM-DD, monthly/future: key = YYYY-MM,
-// collection: key = the collection's id
-export type LogKind = 'daily' | 'monthly' | 'future' | 'collection'
+// collection: key = the collection's id, inbox: key = 'inbox' (thoughts
+// not yet given a day)
+export type LogKind = 'daily' | 'monthly' | 'future' | 'collection' | 'inbox'
 
 export interface Entry {
   id: number
@@ -20,6 +21,10 @@ export interface Entry {
   from?: number
   // When the Calendar reminder made from this entry rings (ms).
   remindAt?: number
+  // One of the day's top three.
+  star?: boolean
+  // How many times the task has been carried forward.
+  moves?: number
 }
 
 // An attachment. The table predates audio and video, hence the name; rows
@@ -110,7 +115,7 @@ export async function addMedia(entryId: number, media: Prepared[]) {
   await db.photos.bulkAdd(media.map((m) => ({ entryId, ...m, createdAt: now })))
 }
 
-export function updateEntry(id: number, patch: Partial<Pick<Entry, 'text' | 'status' | 'type' | 'remindAt'>>) {
+export function updateEntry(id: number, patch: Partial<Pick<Entry, 'text' | 'status' | 'type' | 'remindAt' | 'star'>>) {
   return db.entries.update(id, { ...patch, updatedAt: Date.now() })
 }
 
@@ -142,9 +147,16 @@ export function migrateEntry(entry: Entry, log: LogKind, key: string) {
       createdAt: now,
       updatedAt: now,
       from: entry.id,
+      moves: (entry.moves ?? 0) + 1,
     })
     await db.photos.where('entryId').equals(entry.id).modify({ entryId: copyId })
   })
+}
+
+// Gives an inbox thought its place. Unlike migration nothing stays behind:
+// the thought was never on a page.
+export function moveEntry(id: number, log: LogKind, key: string) {
+  return db.entries.update(id, { log, key, updatedAt: Date.now() })
 }
 
 export const MAX_HABITS = 6
