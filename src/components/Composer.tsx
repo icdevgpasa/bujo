@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'preact/hooks'
 import { describeClipboardError, findUrl, readClipboard, type Pasted } from '../clipboard'
 import type { EntryType, LogKind } from '../db'
 import { primeKeyboard } from '../keyboard'
+import { openInCalendar, reminderFor, remindersOn, timeIn } from '../reminders'
 import { prepareMedia, type Prepared } from '../media'
 import { href } from '../router'
 import { findWhen, guessType, smartDatesOn, type When } from '../smartDates'
@@ -45,6 +46,8 @@ export function Composer({
   const [writing, setWriting] = useState(false)
   const [keepHere, setKeepHere] = useState(false)
   const [sentTo, setSentTo] = useState<When>()
+  // Unset until the bell is tapped; a time in the text ("o 15") rings it.
+  const [bellPicked, setBell] = useState<boolean>()
 
   // A date in the text ("jutro", "w piątek") suggests another page, unless
   // the switch on the Kopia page is off or the hint was dismissed.
@@ -53,6 +56,10 @@ export function Composer({
   const when = found && !(found.log === here?.log && found.key === here?.key) ? found : undefined
   // "kupić jutro chleb" is a task, "urodziny Mariusza w grudniu" an event.
   const type = (smart && !typePicked && guessType(found?.text || text)) || chosenType
+  // Reminders need a day, so they are offered only for entries landing on one.
+  const day = when ? (when.log === 'daily' ? when.key : undefined) : here?.log === 'daily' ? here.key : undefined
+  const canRemind = !!day && remindersOn()
+  const bell = canRemind && (bellPicked ?? !!timeIn(text))
 
   useEffect(() => {
     if (!sentTo) return
@@ -123,11 +130,13 @@ export function Composer({
     try {
       if (when) await onSubmit(type, when.text || value, media, { log: when.log, key: when.key })
       else await onSubmit(type, value, media)
+      if (bell && day) openInCalendar(reminderFor(when?.text || value, day))
       setSentTo(when)
       setText('')
       setMedia([])
       setKeepHere(false)
       setTypePicked(false)
+      setBell(undefined)
       setWriting(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nie udało się zapisać')
@@ -214,6 +223,18 @@ export function Composer({
                 {BULLET[t]} {TYPE_LABEL[t]}
               </button>
             ))}
+            {canRemind && (
+              <button
+                type="button"
+                role="switch"
+                aria-checked={bell}
+                class={`chip ${bell ? 'active' : ''}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setBell(!bell)}
+              >
+                🔔 {bell ? reminderFor(when?.text || text, day!).label : 'Przypomnij'}
+              </button>
+            )}
           </div>
           {when && (
             <div class="when-hint" role="status">

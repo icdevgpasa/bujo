@@ -30,6 +30,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Serves calendar files for reminders; must run before the SPA fallback.
+        importScripts: ['reminder-sw.js'],
+        navigateFallbackDenylist: [/reminder\.ics/],
       },
     }),
   ],

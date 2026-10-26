@@ -5,6 +5,7 @@ import { db, kindOf } from '../db'
 import { plural } from '../plural'
 import { InstallGuide } from '../components/InstallGuide'
 import { isInstalled } from '../install'
+import { HOURS, LEADS, reminderHour, reminderLead, remindersOn, setReminderHour, setReminderLead, setRemindersOn } from '../reminders'
 import { setSmartDates, smartDatesOn } from '../smartDates'
 import { currentTheme, setTheme, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
@@ -34,6 +35,9 @@ export function BackupView() {
   const [theme, setThemeState] = useState(currentTheme)
   const [guide, setGuide] = useState(false)
   const [smartDates, setSmartDatesState] = useState(smartDatesOn)
+  const [reminders, setRemindersState] = useState(remindersOn)
+  const [lead, setLeadState] = useState(reminderLead)
+  const [hour, setHourState] = useState(reminderHour)
 
   const chooseTheme = (t: Theme) => {
     setTheme(t)
@@ -192,6 +196,41 @@ export function BackupView() {
             <span class="muted small">„Kupić jutro chleb” trafi na jutro jako zadanie „Kupić chleb”, a „urodziny Mariusza w grudniu” do grudnia jako wydarzenie. Rozumie m.in. jutro, pojutrze, w piątek, za 3 dni, 15 listopada, w grudniu.</span>
           </span>
         </label>
+        <label class="toggle">
+          <input
+            type="checkbox"
+            checked={reminders}
+            onChange={(e) => {
+              setRemindersOn(e.currentTarget.checked)
+              setRemindersState(e.currentTarget.checked)
+            }}
+          />
+          <span>
+            <b>Przypomnienia w Kalendarzu</b>
+            <br />
+            <span class="muted small">Przy wpisie na konkretny dzień pojawi się 🔔. Stuknięcie dodaje wydarzenie z alarmem do Kalendarza telefonu. Godzinę bierze z tekstu („dentysta o 15”), a jeśli jej nie ma, z ustawienia niżej.</span>
+          </span>
+        </label>
+        {reminders && (
+          <div class="reminder-settings">
+            <p class="small">Przypomnij przed</p>
+            <div class="chips" role="radiogroup" aria-label="Przypomnij przed">
+              {LEADS.map((l) => (
+                <button type="button" role="radio" aria-checked={lead === l.minutes} class={`chip ${lead === l.minutes ? 'active' : ''}`} onClick={() => { setReminderLead(l.minutes); setLeadState(l.minutes) }}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
+            <p class="small">Gdy wpis nie ma godziny</p>
+            <div class="chips" role="radiogroup" aria-label="Godzina, gdy wpis jej nie ma">
+              {HOURS.map((h) => (
+                <button type="button" role="radio" aria-checked={hour === h} class={`chip ${hour === h ? 'active' : ''}`} onClick={() => { setReminderHour(h); setHourState(h) }}>
+                  {h}:00
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
       {!isInstalled && (
         <p>
