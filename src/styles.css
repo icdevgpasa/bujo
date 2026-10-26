@@ -134,6 +134,7 @@ section:first-of-type h2 { margin-top: 4px; }
   border-left: 3px solid var(--ribbon);
   cursor: pointer;
 }
+.banner.quiet { color: var(--ink-soft); border-left-color: var(--ink-faint); text-decoration: none; }
 .banner-cta { display: block; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---- Entries ---- */
@@ -328,6 +329,17 @@ section:first-of-type h2 { margin-top: 4px; }
 }
 .migration .task { font-family: var(--hand); font-size: 21px; line-height: var(--rhythm); }
 .migration .row button { flex: 1; padding: 0 6px; text-align: center; }
+
+/* ---- Backup ---- */
+.note { margin: 0 0 var(--rhythm); font-family: var(--hand); font-size: 21px; line-height: var(--rhythm); }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 0 16px; margin: 0 0 var(--rhythm); }
+.facts dt { color: var(--ink-soft); font-size: 13px; }
+.facts dd { margin: 0; }
+.warn { color: var(--ribbon); }
+.status { color: var(--ink-soft); font-size: 14px; }
+.confirm p { margin: 0 0 8px; }
+.confirm .row button { flex: 1; text-align: center; }
+button:disabled { opacity: 0.5; cursor: default; }
 
 /* ---- Photo viewer ---- */
 .viewer {

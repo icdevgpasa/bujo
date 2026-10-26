@@ -5,12 +5,14 @@ export type Route =
   | { view: 'day'; key: string }
   | { view: 'month'; key: string }
   | { view: 'future' }
+  | { view: 'backup' }
 
 export function parseRoute(hash: string): Route {
   const [, view, key] = hash.replace(/^#/, '').split('/')
   if (view === 'day' && /^\d{4}-\d{2}-\d{2}$/.test(key)) return { view, key }
   if (view === 'month' && /^\d{4}-\d{2}$/.test(key)) return { view, key }
   if (view === 'future') return { view }
+  if (view === 'backup') return { view }
   return { view: 'day', key: dayKey() }
 }
 
@@ -18,6 +20,7 @@ export const href = {
   day: (key = dayKey()) => `#/day/${key}`,
   month: (key = monthKey()) => `#/month/${key}`,
   future: () => '#/future',
+  backup: () => '#/backup',
 }
 
 export function useRoute(): Route {
