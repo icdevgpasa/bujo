@@ -7,7 +7,7 @@ import { InstallGuide } from '../components/InstallGuide'
 import { isInstalled } from '../install'
 import { HOURS, LEADS, reminderHour, reminderLead, remindersOn, setReminderHour, setReminderLead, setRemindersOn } from '../reminders'
 import { setSmartDates, smartDatesOn } from '../smartDates'
-import { currentTheme, setTheme, type Theme } from '../theme'
+import { currentTheme, setTheme, THEMES, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
 
 function formatBytes(bytes: number): string {
@@ -106,14 +106,12 @@ export function BackupView() {
       <section class="settings-section">
         <h2>Wygląd</h2>
         <div class="themes" role="radiogroup" aria-label="Wygląd">
-          <button type="button" role="radio" aria-checked={theme === 'paper'} class="theme-option" onClick={() => chooseTheme('paper')}>
-            <span class="swatch swatch-paper" aria-hidden="true">• Kupić chleb</span>
-            Papierowy notes
-          </button>
-          <button type="button" role="radio" aria-checked={theme === 'modern'} class="theme-option" onClick={() => chooseTheme('modern')}>
-            <span class="swatch swatch-modern" aria-hidden="true"><i />Kupić chleb</span>
-            Nowoczesny
-          </button>
+          {THEMES.map((t) => (
+            <button type="button" role="radio" aria-checked={theme === t.id} class="theme-option" onClick={() => chooseTheme(t.id)}>
+              <span class={`swatch swatch-${t.id}`} aria-hidden="true">{t.id === 'modern' ? <i /> : '• '}Kupić chleb</span>
+              {t.label}
+            </button>
+          ))}
         </div>
       </section>
 

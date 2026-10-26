@@ -7,9 +7,11 @@
     <script>
       // Apply the chosen look before the first paint (see src/theme.ts).
       try {
-        if (localStorage.getItem('bujo:theme') === 'modern') {
-          document.documentElement.dataset.theme = 'modern'
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f3f4f6')
+        var bars = { modern: '#f3f4f6', squared: '#fdfdfb', kraft: '#d6bc93', night: '#1c2230' }
+        var theme = localStorage.getItem('bujo:theme')
+        if (bars[theme]) {
+          document.documentElement.dataset.theme = theme
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', bars[theme])
         }
       } catch {}
     </script>

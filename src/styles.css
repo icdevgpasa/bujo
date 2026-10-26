@@ -661,6 +661,65 @@ button:disabled { opacity: 0.5; cursor: default; }
 [data-theme='modern'] .tabs a[aria-current='page'] { color: var(--ribbon); box-shadow: none; font-weight: 600; }
 [data-theme='modern'] .primary { background: var(--ribbon) !important; border-color: var(--ribbon) !important; color: #fff; }
 
+/*
+ * Zeszyt w kratkę: a Polish school exercise book. White paper, pale blue
+ * squares on the same 24px rhythm, a red margin line and ballpoint-blue ink.
+ */
+:root[data-theme='squared'] {
+  --paper: #fdfdfb;
+  --paper-lit: #ffffff;
+  --edge: #d6e2ef;
+  --dot: #d3e0ee;
+  --ink: #1f3a8a;
+  --ink-soft: #55648a;
+  --ink-faint: #97a1b9;
+  --ribbon: #d0343a;
+}
+[data-theme='squared'] body {
+  background-image:
+    linear-gradient(90deg, transparent 15px, rgb(208 52 58 / 0.45) 15px, rgb(208 52 58 / 0.45) 16px, transparent 16px),
+    linear-gradient(var(--dot) 1px, transparent 1px),
+    linear-gradient(90deg, var(--dot) 1px, transparent 1px);
+  background-size: 100% 100%, var(--rhythm) var(--rhythm), var(--rhythm) var(--rhythm);
+  background-position: 0 0, 0 -1px, 0 0;
+  background-attachment: fixed, scroll, scroll;
+}
+
+/*
+ * Kraft: a brown kraft-paper notebook with dark sepia ink and a forest-green
+ * ribbon.
+ */
+:root[data-theme='kraft'] {
+  --paper: #d6bc93;
+  --paper-lit: #e4d0ae;
+  --edge: #bf9f71;
+  --dot: #a4855a;
+  --ink: #2c1f14;
+  --ink-soft: #5a4532;
+  --ink-faint: #7d6448;
+  --ribbon: #2f5d3a;
+  --danger: #9c2a1f;
+}
+
+/*
+ * Nocny: the dot-grid notebook after dark. Deep blue-grey page, chalky
+ * cream ink, an amber ribbon; easy on the eyes in bed.
+ */
+:root[data-theme='night'] {
+  --paper: #1c2230;
+  --paper-lit: #252d3d;
+  --edge: #364055;
+  --dot: #3b4559;
+  --ink: #ebe4d3;
+  --ink-soft: #a9afbb;
+  --ink-faint: #737b8c;
+  --ribbon: #e3a24a;
+  --danger: #f0806f;
+  color-scheme: dark;
+}
+[data-theme='night'] .thumb img { background: #e9e4d8; box-shadow: 0 1px 4px rgb(0 0 0 / 0.5); }
+[data-theme='night'] .sheet-backdrop { background: rgb(0 0 0 / 0.5); }
+
 /* ---- Smart dates ---- */
 .when-hint {
   display: flex;
@@ -721,6 +780,35 @@ button:disabled { opacity: 0.5; cursor: default; }
   color: #161b26;
   background: #f3f4f6;
   border-radius: 8px;
+}
+.swatch-squared {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  line-height: 22px;
+  color: #1f3a8a;
+  background-color: #fff;
+  background-image:
+    linear-gradient(90deg, transparent 6px, rgb(208 52 58 / 0.5) 6px, rgb(208 52 58 / 0.5) 7px, transparent 7px),
+    linear-gradient(#d3e0ee 1px, transparent 1px),
+    linear-gradient(90deg, #d3e0ee 1px, transparent 1px);
+  background-size: 100% 100%, 11px 11px, 11px 11px;
+  border-radius: 2px;
+}
+.swatch-kraft {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  line-height: 22px;
+  color: #2c1f14;
+  background: #d6bc93 radial-gradient(#a4855a 1px, transparent 1.2px) 5px 5px / 12px 12px;
+  border-radius: 2px;
+}
+.swatch-night {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  line-height: 22px;
+  color: #ebe4d3;
+  background: #1c2230 radial-gradient(#3b4559 1px, transparent 1.2px) 5px 5px / 12px 12px;
+  border-radius: 2px;
 }
 .swatch-modern i { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #12715f; }
 
