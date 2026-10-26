@@ -6,9 +6,11 @@ import { compressPhoto, prepareMedia } from '../media'
 import { useLiveQuery } from '../useLiveQuery'
 import { describeAttachments, placeholderFor } from './attachments'
 import { TYPE_LABEL } from './bullets'
+import { primeKeyboard } from '../keyboard'
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
 import { Sheet } from './Sheet'
+import { Writer } from './Writer'
 
 interface Target {
   label: string
@@ -81,29 +83,26 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
   const isOpenTask = isTask && entry.status === 'open'
   const futureMonths = Array.from({ length: 6 }, (_, i) => addMonths(monthKey(), i + 1))
 
+  // Editing takes over the whole screen; Save returns to the page.
+  if (editing)
+    return (
+      <Writer
+        title="Edycja wpisu"
+        text={text}
+        onText={setText}
+        onSave={run(() => updateEntry(entry.id, { text: text.trim() }))}
+        onCancel={() => setEditing(false)}
+        error={error}
+      />
+    )
+
   return (
     <Sheet onClose={onClose} label={`${TYPE_LABEL[entry.type]}: ${entry.text}`}>
-      {editing ? (
-        <form
-          class="edit"
-          onSubmit={(e) => {
-            e.preventDefault()
-            run(() => updateEntry(entry.id, { text: text.trim() }))()
-          }}
-        >
-          <textarea value={text} onInput={(e) => setText(e.currentTarget.value)} rows={3} aria-label="Treść wpisu" autoFocus />
-          <div class="row">
-            <button type="button" onClick={() => setEditing(false)}>Anuluj</button>
-            <button type="submit" class="primary">Zapisz</button>
-          </div>
-        </form>
-      ) : (
         <p class="sheet-title">
           <span class="muted">{TYPE_LABEL[entry.type]}</span>
           <br />
           {entry.text || placeholderFor(kinds)}
         </p>
-      )}
 
       {error && <div class="error" role="alert">{error}</div>}
 
@@ -147,7 +146,15 @@ export function EntryActions({ entry, onClose }: { entry: Entry; onClose: () => 
       )}
 
       <div class="actions">
-        {!editing && <button type="button" onClick={() => setEditing(true)}>Edytuj tekst</button>}
+        <button
+          type="button"
+          onClick={() => {
+            primeKeyboard()
+            setEditing(true)
+          }}
+        >
+          Edytuj tekst
+        </button>
         <button type="button" onClick={pasteInto}>📋 Wklej ze schowka</button>
         <MediaPicker onPick={(files) => attach(files)}>📷 Dodaj zdjęcie lub film</MediaPicker>
         <RecordButton class="photo-button" onRecorded={(audio, seconds) => attach([audio], seconds)}>🎙 Nagraj notatkę głosową</RecordButton>

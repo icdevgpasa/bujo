@@ -1,4 +1,7 @@
+import { useState } from 'preact/hooks'
+import { InstallGuide } from './components/InstallGuide'
 import { monthKey } from './dates'
+import { shouldOfferInstall } from './install'
 import { href, useRoute, useTurn } from './router'
 import { BackupView } from './views/BackupView'
 import { DailyView } from './views/DailyView'
@@ -10,6 +13,7 @@ import { MonthlyView } from './views/MonthlyView'
 export function App() {
   const route = useRoute()
   const turn = useTurn(route)
+  const [installGuide, setInstallGuide] = useState(shouldOfferInstall)
   return (
     <>
       <main class={`page turn-${turn}`}>
@@ -40,6 +44,7 @@ export function App() {
           </svg>
         </a>
       </nav>
+      {installGuide && <InstallGuide onClose={() => setInstallGuide(false)} />}
     </>
   )
 }
