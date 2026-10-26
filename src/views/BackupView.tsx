@@ -3,6 +3,7 @@ import { createBackup, lastBackupAt, readBackup, saveBackup, type BackupSummary 
 import { describeAttachments } from '../components/attachments'
 import { db, kindOf } from '../db'
 import { plural } from '../plural'
+import { currentTheme, setTheme, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
 
 function formatBytes(bytes: number): string {
@@ -31,6 +32,12 @@ export function BackupView() {
   const [pending, setPending] = useState<{ summary: BackupSummary; restore: () => Promise<void> }>()
   const [ready, setReady] = useState<File>()
   const fileInput = useRef<HTMLInputElement>(null)
+  const [theme, setThemeState] = useState(currentTheme)
+
+  const chooseTheme = (t: Theme) => {
+    setTheme(t)
+    setThemeState(t)
+  }
 
   useEffect(() => {
     navigator.storage?.estimate?.().then((e) => setUsage(e.usage))
@@ -151,6 +158,20 @@ export function BackupView() {
           />
         </div>
       )}
+
+      <section class="look">
+        <h2>Wygląd</h2>
+        <div class="themes" role="radiogroup" aria-label="Wygląd">
+          <button type="button" role="radio" aria-checked={theme === 'paper'} class="theme-option" onClick={() => chooseTheme('paper')}>
+            <span class="swatch swatch-paper" aria-hidden="true">• Kupić chleb</span>
+            Papierowy notes
+          </button>
+          <button type="button" role="radio" aria-checked={theme === 'modern'} class="theme-option" onClick={() => chooseTheme('modern')}>
+            <span class="swatch swatch-modern" aria-hidden="true"><i />Kupić chleb</span>
+            Nowoczesny
+          </button>
+        </div>
+      </section>
     </>
   )
 }
