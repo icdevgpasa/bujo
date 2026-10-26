@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks'
+import { useEffect, useRef, useState } from 'preact/hooks'
 import { dayKey, monthKey } from './dates'
 
 export type Route =
@@ -31,4 +31,23 @@ export function useRoute(): Route {
     return () => removeEventListener('hashchange', onChange)
   }, [])
   return route
+}
+
+export type Turn = 'next' | 'prev' | 'fade'
+
+// Which way the page turns: forward or back within the same view (day keys
+// and month keys both sort as strings), otherwise a plain fade between tabs.
+export function useTurn(route: Route): Turn {
+  const last = useRef<{ route: Route; turn: Turn }>({ route, turn: 'fade' })
+  if (last.current.route !== route) {
+    const from = last.current.route
+    const turn: Turn =
+      'key' in from && 'key' in route && from.view === route.view
+        ? route.key > from.key
+          ? 'next'
+          : 'prev'
+        : 'fade'
+    last.current = { route, turn }
+  }
+  return last.current.turn
 }

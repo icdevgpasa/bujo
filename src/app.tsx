@@ -1,5 +1,5 @@
 import { monthKey } from './dates'
-import { href, useRoute } from './router'
+import { href, useRoute, useTurn } from './router'
 import { BackupView } from './views/BackupView'
 import { DailyView } from './views/DailyView'
 import { FutureView } from './views/FutureView'
@@ -7,9 +7,10 @@ import { MonthlyView } from './views/MonthlyView'
 
 export function App() {
   const route = useRoute()
+  const turn = useTurn(route)
   return (
     <>
-      <main class="page">
+      <main class={`page turn-${turn}`}>
         {route.view === 'day' && <DailyView key={route.key} day={route.key} />}
         {route.view === 'month' && <MonthlyView key={route.key} month={route.key} />}
         {route.view === 'future' && <FutureView />}
