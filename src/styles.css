@@ -144,6 +144,7 @@ section:first-of-type h2 { margin-top: 4px; }
 }
 .entry .body { flex: 1; min-width: 0; padding-bottom: 4px; }
 .entry .text {
+  white-space: pre-line;
   display: block;
   width: 100%;
   text-align: left;
@@ -331,7 +332,7 @@ section:first-of-type h2 { margin-top: 4px; }
 .results a { display: flex; align-items: flex-start; padding: 4px 0; text-decoration: none; }
 .results .bullet { flex: none; width: 28px; font-size: 17px; line-height: var(--rhythm); }
 .result-body { flex: 1; min-width: 0; }
-.results .text { display: block; font-family: var(--hand); font-size-adjust: var(--hand-adjust); font-size: 21px; line-height: var(--rhythm); overflow-wrap: anywhere; }
+.results .text { display: block; white-space: pre-line; font-family: var(--hand); font-size-adjust: var(--hand-adjust); font-size: 21px; line-height: var(--rhythm); overflow-wrap: anywhere; }
 .results .place { display: block; font-size: 12px; line-height: 16px; color: var(--ink-soft); }
 .results .place::first-letter { text-transform: uppercase; }
 /* Like the contents page of a notebook: name, dotted leader, count. */
@@ -357,26 +358,84 @@ button.quiet-link { background: none; border: 0; padding: 0; cursor: pointer; }
   border-top: 1px solid var(--edge);
 }
 .composer-row { display: flex; gap: 5px; }
-.types { display: flex; gap: 0; }
-.types button, .composer input, .photo-button {
+.compose-field, .photo-button {
   height: 40px;
   background: var(--paper-lit);
   border: 1px solid var(--edge);
   border-radius: var(--radius);
 }
-.types button { width: 34px; font-size: 17px; cursor: pointer; border-radius: 0; }
-.types button + button { border-left: 0; }
-.types button:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-.types button:last-child { border-radius: 0 var(--radius) var(--radius) 0; }
-.types button.active { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.composer input {
+/* Looks like a text field; a tap opens the writing page. */
+.compose-field {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 0 10px;
+  text-align: left;
+  cursor: text;
+}
+.compose-bullet { flex: none; width: 12px; font-size: 15px; color: var(--ink-soft); }
+.compose-text {
+  flex: 1;
+  min-width: 0;
   font-family: var(--hand); font-size-adjust: var(--hand-adjust);
   font-size: 21px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.composer input::placeholder { color: var(--ink-faint); }
+.compose-field.has-draft .compose-text { color: var(--ink); }
+
+/* ---- Writing page ---- */
+.writer {
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  height: 100dvh;
+  z-index: 9; /* above the page and tabs, below sheets such as the recorder */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: max(10px, env(safe-area-inset-top)) 16px 10px;
+  background: var(--paper-lit);
+}
+.writer-bar { display: flex; align-items: center; gap: 8px; }
+.writer-bar button {
+  min-height: 40px;
+  padding: 0 14px;
+  background: var(--paper);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.writer-title { flex: 1; text-align: center; font-size: 14px; font-weight: 600; color: var(--ink-soft); }
+.writer-types { display: flex; gap: 6px; }
+.writer textarea {
+  flex: 1;
+  min-height: 96px;
+  width: 100%;
+  padding: 10px 12px;
+  resize: none;
+  font-family: var(--hand); font-size-adjust: var(--hand-adjust);
+  font-size: 23px;
+  line-height: 28px;
+  color: var(--ink);
+  background: var(--paper);
+  /* Ruled like the notebook page the entry will land on. */
+  background-image: linear-gradient(transparent 27px, var(--edge) 27px);
+  background-size: 100% 28px;
+  background-attachment: local;
+  background-position: 0 10px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+}
+.writer textarea::placeholder { color: var(--ink-faint); }
+.writer-footer { display: flex; flex-direction: column; gap: 4px; }
+.writer-tools { display: flex; gap: 6px; }
+
 .photo-button { width: 40px; flex: none; cursor: pointer; }
 .pending-photos { font-size: 13px; color: var(--ink-soft); }
 .link { background: none; border: 0; padding: 0 0 0 6px; color: var(--ribbon); text-decoration: underline; cursor: pointer; font-size: 13px; }
@@ -434,7 +493,7 @@ button.quiet-link { background: none; border: 0; padding: 0; cursor: pointer; }
   border-top: 3px solid var(--ink);
   box-shadow: 0 -2px 12px rgb(39 56 79 / 0.18);
 }
-.sheet-title { margin: 0 0 16px; font-family: var(--hand); font-size-adjust: var(--hand-adjust); font-size: 24px; line-height: 28px; overflow-wrap: anywhere; }
+.sheet-title { white-space: pre-line; margin: 0 0 16px; font-family: var(--hand); font-size-adjust: var(--hand-adjust); font-size: 24px; line-height: 28px; overflow-wrap: anywhere; }
 .sheet-title .muted { font-family: var(--print); font-size: 13px; }
 .sheet h3 { margin: 18px 0 6px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
 .actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
@@ -462,16 +521,6 @@ button.quiet-link { background: none; border: 0; padding: 0; cursor: pointer; }
 .danger { color: var(--danger); border-color: var(--danger) !important; }
 .primary { background: var(--ink) !important; border-color: var(--ink) !important; color: var(--paper); }
 .row { display: flex; gap: 6px; }
-.edit textarea {
-  width: 100%;
-  padding: 8px;
-  font-family: var(--hand); font-size-adjust: var(--hand-adjust);
-  font-size: 21px;
-  line-height: var(--rhythm);
-  background: var(--paper);
-  border: 1px solid var(--edge);
-  border-radius: var(--radius);
-}
 .edit .row { justify-content: flex-end; margin-top: 6px; }
 .edit .row button { text-align: center; }
 
@@ -595,8 +644,16 @@ button:disabled { opacity: 0.5; cursor: default; }
 [data-theme='modern'] .sheet { border-top: 0; border-radius: 18px 18px 0 0; box-shadow: 0 -4px 24px rgb(22 27 38 / 0.12); }
 [data-theme='modern'] .sheet-backdrop { background: rgb(22 27 38 / 0.4); }
 [data-theme='modern'] .composer { background: var(--paper-lit); }
+[data-theme='modern'] .writer textarea { background-image: none; line-height: 26px; }
 [data-theme='modern'] .tabs a[aria-current='page'] { color: var(--ribbon); box-shadow: none; font-weight: 600; }
 [data-theme='modern'] .primary { background: var(--ribbon) !important; border-color: var(--ribbon) !important; color: #fff; }
+
+/* ---- Install guide ---- */
+.install-why { margin: 0 0 8px; }
+.steps { margin: 0 0 12px; padding-left: 22px; }
+.steps li { margin-bottom: 6px; line-height: 22px; }
+.inline-icon { width: 18px; height: 18px; vertical-align: -3px; }
+.link.inline { padding: 0; font-size: inherit; }
 
 /* ---- Look switcher on the backup page ---- */
 .look { margin-top: calc(var(--rhythm) * 1.5); }

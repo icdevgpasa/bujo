@@ -3,6 +3,8 @@ import { createBackup, lastBackupAt, readBackup, saveBackup, type BackupSummary 
 import { describeAttachments } from '../components/attachments'
 import { db, kindOf } from '../db'
 import { plural } from '../plural'
+import { InstallGuide } from '../components/InstallGuide'
+import { isInstalled } from '../install'
 import { currentTheme, setTheme, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
 
@@ -15,10 +17,6 @@ function formatDate(ms: number): string {
   return new Date(ms).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-// Installed home-screen apps are exempt from Safari's storage eviction, so the
-// warning only matters when the app runs in a normal browser tab.
-const installed =
-  matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
 
 export function BackupView() {
   // Rows read from IndexedDB hold Blob handles, not the bytes, so this stays cheap.
@@ -33,6 +31,7 @@ export function BackupView() {
   const [ready, setReady] = useState<File>()
   const fileInput = useRef<HTMLInputElement>(null)
   const [theme, setThemeState] = useState(currentTheme)
+  const [guide, setGuide] = useState(false)
 
   const chooseTheme = (t: Theme) => {
     setTheme(t)
@@ -115,10 +114,15 @@ export function BackupView() {
         )}
         <dt>Ostatnia kopia</dt>
         <dd>{last ? formatDate(last) : 'jeszcze nie było'}</dd>
-        {persisted === false && !installed && (
+        {/* Home-screen apps are exempt from Safari's storage eviction, so this
+            only matters when the app runs in a browser tab. */}
+        {persisted === false && !isInstalled && (
           <>
             <dt>Ochrona danych</dt>
-            <dd class="warn">Przeglądarka może usunąć dane przy braku miejsca. Zainstaluj aplikację na ekranie głównym.</dd>
+            <dd class="warn">
+              Przeglądarka może usunąć dane przy braku miejsca.{' '}
+              <button type="button" class="link inline" onClick={() => setGuide(true)}>Dodaj aplikację do ekranu</button>
+            </dd>
           </>
         )}
       </dl>
@@ -172,6 +176,12 @@ export function BackupView() {
           </button>
         </div>
       </section>
+      {!isInstalled && (
+        <p>
+          <button type="button" class="link inline" onClick={() => setGuide(true)}>Jak dodać Bujo do ekranu telefonu</button>
+        </p>
+      )}
+      {guide && <InstallGuide onClose={() => setGuide(false)} />}
     </>
   )
 }
