@@ -142,3 +142,22 @@ export function setSmartDates(on: boolean) {
     // Blocked storage: the switch just doesn't stick.
   }
 }
+
+// Folded word starts that mark something happening rather than a thing to do.
+const EVENT_WORDS = [
+  'urodzin', 'imienin', 'rocznic', 'spotkani', 'wizyt', 'lekarz', 'dentyst', 'slub', 'wesel', 'chrzcin', 'komuni',
+  'koncert', 'kino', 'kina', 'teatr', 'mecz', 'wyjazd', 'urlop', 'wakacj', 'wigili', 'swieta', 'przyjeci', 'impreza',
+  'imprezy', 'zebrani', 'egzamin', 'randk', 'lot ', 'pogrzeb',
+]
+
+// Task when it opens with a verb in the infinitive ("kupić", "pomóc"), event
+// when it names an occasion or a time ("urodziny", "o 15"), otherwise no
+// opinion and the chosen type stays.
+export function guessType(text: string): 'task' | 'event' | undefined {
+  const first = text.trim().split(/\s+/)[0] ?? ''
+  if (first.length > 3 && /(ć|óc)$/i.test(first)) return 'task'
+  const folded = ` ${fold(text)} `
+  if (EVENT_WORDS.some((w) => new RegExp(`[^\\p{L}]${w}`, 'u').test(folded))) return 'event'
+  if (/[^\p{L}\d]o\s+\d{1,2}([:.]\d{2})?(?!\d)/u.test(folded)) return 'event'
+  return undefined
+}

@@ -5,7 +5,7 @@ import type { EntryType, LogKind } from '../db'
 import { primeKeyboard } from '../keyboard'
 import { prepareMedia, type Prepared } from '../media'
 import { href } from '../router'
-import { findWhen, smartDatesOn, type When } from '../smartDates'
+import { findWhen, guessType, smartDatesOn, type When } from '../smartDates'
 import { describeAttachments } from './attachments'
 import { BULLET, TYPE_LABEL } from './bullets'
 import { MediaPicker } from './MediaPicker'
@@ -35,7 +35,9 @@ export function Composer({
   children?: ComponentChildren
 }) {
   const [text, setText] = useState('')
-  const [type, setType] = useState<EntryType>('task')
+  const [chosenType, setType] = useState<EntryType>('task')
+  // Set once the type is picked by hand, so guessing stops overriding it.
+  const [typePicked, setTypePicked] = useState(false)
   const [media, setMedia] = useState<Prepared[]>([])
   const [preparing, setPreparing] = useState(0)
   const [busy, setBusy] = useState(false)
@@ -46,8 +48,11 @@ export function Composer({
 
   // A date in the text ("jutro", "w piątek") suggests another page, unless
   // the switch on the Kopia page is off or the hint was dismissed.
-  const found = here && !keepHere && smartDatesOn() ? findWhen(text) : undefined
+  const smart = !!here && smartDatesOn()
+  const found = smart && !keepHere ? findWhen(text) : undefined
   const when = found && !(found.log === here?.log && found.key === here?.key) ? found : undefined
+  // "kupić jutro chleb" is a task, "urodziny Mariusza w grudniu" an event.
+  const type = (smart && !typePicked && guessType(found?.text || text)) || chosenType
 
   useEffect(() => {
     if (!sentTo) return
@@ -122,6 +127,7 @@ export function Composer({
       setText('')
       setMedia([])
       setKeepHere(false)
+      setTypePicked(false)
       setWriting(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nie udało się zapisać')
@@ -200,7 +206,10 @@ export function Composer({
                 class={`chip ${type === t ? 'active' : ''}`}
                 // Keep focus (and the keyboard) in the text area.
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setType(t)}
+                onClick={() => {
+                  setType(t)
+                  setTypePicked(true)
+                }}
               >
                 {BULLET[t]} {TYPE_LABEL[t]}
               </button>

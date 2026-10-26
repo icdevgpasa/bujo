@@ -187,9 +187,9 @@ export function BackupView() {
             }}
           />
           <span>
-            <b>Rozpoznawaj daty w tekście</b>
+            <b>Rozpoznawaj daty i rodzaj wpisu</b>
             <br />
-            <span class="muted small">„Kupić jutro chleb” trafi na jutro jako „Kupić chleb”. Rozumie m.in. jutro, pojutrze, w piątek, za 3 dni, 15 listopada, w grudniu.</span>
+            <span class="muted small">„Kupić jutro chleb” trafi na jutro jako zadanie „Kupić chleb”, a „urodziny Mariusza w grudniu” do grudnia jako wydarzenie. Rozumie m.in. jutro, pojutrze, w piątek, za 3 dni, 15 listopada, w grudniu.</span>
           </span>
         </label>
       </section>
