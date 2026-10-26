@@ -2,21 +2,44 @@ import type { ComponentChildren } from 'preact'
 import { useState } from 'preact/hooks'
 import { describeClipboardError, findUrl, readClipboard, type Pasted } from '../clipboard'
 import type { EntryType } from '../db'
+import { prepareMedia, type Prepared } from '../media'
+import { describeAttachments } from './attachments'
 import { BULLET, TYPE_LABEL } from './bullets'
-import { PhotoPicker } from './PhotoPicker'
+import { MediaPicker } from './MediaPicker'
+import { RecordButton } from './Recorder'
 
 export function Composer({
   onSubmit,
   children,
 }: {
-  onSubmit: (type: EntryType, text: string, files: File[]) => Promise<unknown>
+  onSubmit: (type: EntryType, text: string, media: Prepared[]) => Promise<unknown>
   children?: ComponentChildren
 }) {
   const [text, setText] = useState('')
   const [type, setType] = useState<EntryType>('task')
-  const [files, setFiles] = useState<File[]>([])
+  const [media, setMedia] = useState<Prepared[]>([])
+  const [preparing, setPreparing] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // Prepare attachments as they are picked, so a film that is too long is
+  // turned away straight away rather than when the entry is saved.
+  const attach = async (files: Blob[], duration?: number) => {
+    setError('')
+    setPreparing((n) => n + files.length)
+    await Promise.all(
+      files.map(async (file) => {
+        try {
+          const prepared = await prepareMedia(file, duration)
+          setMedia((m) => [...m, prepared])
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Nie udało się dodać pliku.')
+        } finally {
+          setPreparing((n) => n - 1)
+        }
+      }),
+    )
+  }
 
   // Fill the composer rather than saving straight away, so a pasted link or
   // photo can get a comment (or be dropped) before it becomes an entry.
@@ -27,7 +50,7 @@ export function Composer({
       setText((current) => (current.trim() ? `${current.trim()} ${pastedText}` : pastedText))
       if (findUrl(pastedText) && !text.trim()) setType('note')
     }
-    if (images.length) setFiles((f) => [...f, ...images])
+    if (images.length) attach(images)
   }
 
   const paste = async () => {
@@ -50,13 +73,13 @@ export function Composer({
   const submit = async (e: Event) => {
     e.preventDefault()
     const value = text.trim()
-    if ((!value && !files.length) || busy) return
+    if ((!value && !media.length) || busy || preparing) return
     setBusy(true)
     setError('')
     try {
-      await onSubmit(type, value, files)
+      await onSubmit(type, value, media)
       setText('')
-      setFiles([])
+      setMedia([])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nie udało się zapisać')
     } finally {
@@ -67,10 +90,11 @@ export function Composer({
   return (
     <form class="composer" onSubmit={submit}>
       {children}
-      {files.length > 0 && (
+      {(media.length > 0 || preparing > 0) && (
         <div class="pending-photos">
-          📷 {files.length} {files.length === 1 ? 'zdjęcie' : 'zdjęcia'}
-          <button type="button" class="link" onClick={() => setFiles([])}>usuń</button>
+          {describeAttachments(media.map((m) => m.kind))}
+          {preparing > 0 && <span>{media.length ? ', ' : ''}przygotowuję…</span>}
+          {media.length > 0 && <button type="button" class="link" onClick={() => setMedia([])}>usuń</button>}
         </div>
       )}
       {error && <div class="error" role="alert">{error}</div>}
@@ -101,7 +125,8 @@ export function Composer({
         <button type="button" class="photo-button" aria-label="Wklej ze schowka" title="Wklej ze schowka" onClick={paste}>
           📋
         </button>
-        <PhotoPicker onPick={(picked) => setFiles((f) => [...f, ...picked])} />
+        <MediaPicker onPick={(picked) => attach(picked)} />
+        <RecordButton onRecorded={(audio, seconds) => attach([audio], seconds)} />
       </div>
     </form>
   )

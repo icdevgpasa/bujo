@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { createBackup, lastBackupAt, readBackup, saveBackup, type BackupSummary } from '../backup'
-import { db } from '../db'
+import { describeAttachments } from '../components/attachments'
+import { db, kindOf } from '../db'
 import { plural } from '../plural'
 import { useLiveQuery } from '../useLiveQuery'
 
@@ -19,7 +20,8 @@ const installed =
   matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
 
 export function BackupView() {
-  const counts = useLiveQuery(async () => ({ entries: await db.entries.count(), photos: await db.photos.count() }), [])
+  // Rows read from IndexedDB hold Blob handles, not the bytes, so this stays cheap.
+  const counts = useLiveQuery(async () => ({ entries: await db.entries.count(), media: (await db.photos.toArray()).map(kindOf) }), [])
   const [usage, setUsage] = useState<number>()
   const [persisted, setPersisted] = useState<boolean>()
   const [last, setLast] = useState(lastBackupAt)
@@ -33,7 +35,7 @@ export function BackupView() {
   useEffect(() => {
     navigator.storage?.estimate?.().then((e) => setUsage(e.usage))
     navigator.storage?.persisted?.().then(setPersisted)
-  }, [counts?.entries, counts?.photos])
+  }, [counts?.entries, counts?.media.length])
 
   const exportBackup = async () => {
     setBusy(true)
@@ -90,14 +92,14 @@ export function BackupView() {
       </header>
 
       <p class="note">
-        Wszystko, co zapisujesz, jest tylko w tym telefonie. Jeśli go zgubisz albo usuniesz aplikację, wpisy i zdjęcia znikną. Zapisuj kopię co jakiś czas w bezpiecznym miejscu.
+        Wszystko, co zapisujesz, jest tylko w tym telefonie. Jeśli go zgubisz albo usuniesz aplikację, wpisy, zdjęcia, filmy i nagrania znikną. Zapisuj kopię co jakiś czas w bezpiecznym miejscu.
       </p>
 
       <dl class="facts">
         <dt>Wpisy</dt>
         <dd>{counts?.entries ?? '…'}</dd>
-        <dt>Zdjęcia</dt>
-        <dd>{counts?.photos ?? '…'}</dd>
+        <dt>Załączniki</dt>
+        <dd>{counts ? describeAttachments(counts.media) || 'brak' : '…'}</dd>
         {usage !== undefined && (
           <>
             <dt>Zajęte miejsce</dt>
@@ -121,8 +123,8 @@ export function BackupView() {
         <div class="confirm">
           <p>
             Kopia z {formatDate(pending.summary.createdAt)}: {pending.summary.entries}{' '}
-            {plural(pending.summary.entries, 'wpis', 'wpisy', 'wpisów')}, {pending.summary.photos}{' '}
-            {plural(pending.summary.photos, 'zdjęcie', 'zdjęcia', 'zdjęć')}.
+            {plural(pending.summary.entries, 'wpis', 'wpisy', 'wpisów')}
+            {pending.summary.media.length > 0 && `, ${describeAttachments(pending.summary.media)}`}.
           </p>
           <p class="warn">Przywrócenie zastąpi wszystko, co jest teraz w aplikacji.</p>
           <div class="row">
@@ -139,7 +141,7 @@ export function BackupView() {
           <input
             ref={fileInput}
             type="file"
-            accept="application/json,.json"
+            accept="application/zip,.zip,application/json,.json"
             hidden
             onChange={(e) => {
               const file = e.currentTarget.files?.[0]

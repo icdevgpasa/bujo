@@ -1,10 +1,31 @@
 import { useState } from 'preact/hooks'
-import { db, updateEntry, type Entry, type Photo } from '../db'
+import { db, kindOf, updateEntry, type Entry, type Photo } from '../db'
+import { formatDuration } from '../media'
 import { useLiveQuery } from '../useLiveQuery'
 import { bulletFor } from './bullets'
+import { placeholderFor } from './attachments'
 import { BlobImage } from './BlobImage'
 import { EntryActions } from './EntryActions'
-import { PhotoViewer } from './PhotoViewer'
+import { MediaViewer } from './MediaViewer'
+
+// Photos and films are taped onto the page; a voice note is a small tab.
+function Tile({ item, onOpen }: { item: Photo; onOpen: () => void }) {
+  const kind = kindOf(item)
+  if (kind === 'audio')
+    return (
+      <button type="button" class="voice" aria-label={`Odtwórz nagranie, ${formatDuration(item.duration)}`} onClick={onOpen}>
+        <span aria-hidden="true">▶</span> {formatDuration(item.duration)}
+      </button>
+    )
+  return (
+    <button type="button" class={`thumb ${kind}`} aria-label={kind === 'video' ? 'Odtwórz film' : 'Pokaż zdjęcie'} onClick={onOpen}>
+      {item.thumb ? <BlobImage blob={item.thumb} /> : <span class="thumb-blank" />}
+      {kind === 'video' && (
+        <span class="film-badge" aria-hidden="true">▶ {formatDuration(item.duration)}</span>
+      )}
+    </button>
+  )
+}
 
 export function EntryList({ entries, empty }: { entries: Entry[] | undefined; empty?: string }) {
   const ids = entries?.map((e) => e.id) ?? []
@@ -39,14 +60,12 @@ export function EntryList({ entries, empty }: { entries: Entry[] | undefined; em
               </button>
               <div class="body">
                 <button type="button" class="text" onClick={() => setOpen(entry)}>
-                  {entry.text || <span class="muted">(zdjęcie)</span>}
+                  {entry.text || <span class="muted">{placeholderFor(own.map(kindOf))}</span>}
                 </button>
                 {own.length > 0 && (
                   <div class="thumbs">
                     {own.map((p) => (
-                      <button type="button" key={p.id} class="thumb" aria-label="Pokaż zdjęcie" onClick={() => setViewing(p)}>
-                        <BlobImage blob={p.thumb} />
-                      </button>
+                      <Tile key={p.id} item={p} onOpen={() => setViewing(p)} />
                     ))}
                   </div>
                 )}
@@ -56,7 +75,7 @@ export function EntryList({ entries, empty }: { entries: Entry[] | undefined; em
         })}
       </ul>
       {open && <EntryActions entry={entries.find((e) => e.id === open.id) ?? open} onClose={() => setOpen(undefined)} />}
-      {viewing && <PhotoViewer photo={viewing} onClose={() => setViewing(undefined)} />}
+      {viewing && <MediaViewer item={viewing} onClose={() => setViewing(undefined)} />}
     </>
   )
 }
