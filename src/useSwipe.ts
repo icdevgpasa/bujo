@@ -15,7 +15,7 @@ export function useSwipe(onLeft: () => void, onRight: () => void) {
 
     const onStart = (e: TouchEvent) => {
       const target = e.target as Element
-      if (e.touches.length !== 1 || target.closest('input, textarea, .chips, .sheet-backdrop, .viewer')) {
+      if (e.touches.length !== 1 || target.closest('input, textarea, .chips, .sheet-backdrop, .viewer, .one-thing')) {
         start = undefined
         return
       }
