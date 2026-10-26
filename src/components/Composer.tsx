@@ -1,5 +1,6 @@
 import type { ComponentChildren } from 'preact'
 import { useState } from 'preact/hooks'
+import { describeClipboardError, findUrl, readClipboard, type Pasted } from '../clipboard'
 import type { EntryType } from '../db'
 import { BULLET, TYPE_LABEL } from './bullets'
 import { PhotoPicker } from './PhotoPicker'
@@ -16,6 +17,35 @@ export function Composer({
   const [files, setFiles] = useState<File[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // Fill the composer rather than saving straight away, so a pasted link or
+  // photo can get a comment (or be dropped) before it becomes an entry.
+  const applyPaste = ({ text: pastedText, images }: Pasted) => {
+    if (!pastedText && !images.length) return setError('Schowek jest pusty.')
+    setError('')
+    if (pastedText) {
+      setText((current) => (current.trim() ? `${current.trim()} ${pastedText}` : pastedText))
+      if (findUrl(pastedText) && !text.trim()) setType('note')
+    }
+    if (images.length) setFiles((f) => [...f, ...images])
+  }
+
+  const paste = async () => {
+    try {
+      applyPaste(await readClipboard())
+    } catch (err) {
+      setError(describeClipboardError(err))
+    }
+  }
+
+  // Long-press → Paste inside the text field: let text through as usual,
+  // but catch images, which a text field would otherwise drop.
+  const onPaste = (e: ClipboardEvent) => {
+    const images = Array.from(e.clipboardData?.files ?? []).filter((f) => f.type.startsWith('image/'))
+    if (!images.length) return
+    e.preventDefault()
+    applyPaste({ text: '', images })
+  }
 
   const submit = async (e: Event) => {
     e.preventDefault()
@@ -66,7 +96,11 @@ export function Composer({
           placeholder="Nowy wpis…"
           aria-label="Treść wpisu"
           enterKeyHint="send"
+          onPaste={onPaste}
         />
+        <button type="button" class="photo-button" aria-label="Wklej ze schowka" title="Wklej ze schowka" onClick={paste}>
+          📋
+        </button>
         <PhotoPicker onPick={(picked) => setFiles((f) => [...f, ...picked])} />
       </div>
     </form>
