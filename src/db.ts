@@ -102,13 +102,14 @@ export function deletePhoto(id: number) {
 }
 
 // Bullet Journal migration: the original is marked > (forward) or < (into the
-// future log) and an open copy is written to the target log. Photos stay with
-// the original.
+// future log) and an open copy is written to the target log. Photos move to
+// the copy, since that is the task you carry on with; the old page keeps only
+// the > or < mark.
 export function migrateEntry(entry: Entry, log: LogKind, key: string) {
   const now = Date.now()
-  return db.transaction('rw', db.entries, async () => {
+  return db.transaction('rw', db.entries, db.photos, async () => {
     await db.entries.update(entry.id, { status: log === 'future' ? 'scheduled' : 'migrated', updatedAt: now })
-    await db.entries.add({
+    const copyId = await db.entries.add({
       log,
       key,
       type: entry.type,
@@ -118,6 +119,7 @@ export function migrateEntry(entry: Entry, log: LogKind, key: string) {
       updatedAt: now,
       from: entry.id,
     })
+    await db.photos.where('entryId').equals(entry.id).modify({ entryId: copyId })
   })
 }
 
