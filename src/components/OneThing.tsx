@@ -2,7 +2,7 @@ import { createPortal } from 'preact/compat'
 import { useCallback, useEffect, useState } from 'preact/hooks'
 import { updateEntry, type Entry } from '../db'
 import { focusOn } from '../focus'
-import { Celebrate, fanfare } from './Celebrate'
+import { Celebrate, fanfare, HORSE_GIF } from './Celebrate'
 import { FocusTimer, TIMER_MINUTES, unlockAudio } from './FocusTimer'
 
 // One open task on the whole screen: nothing else to look at until it is
@@ -22,6 +22,11 @@ export function OneThing({ entries, onClose }: { entries: Entry[]; onClose: () =
   const open = entries.filter((e) => e.type === 'task' && e.status === 'open')
   const queue = [...open.filter((e) => e.star), ...open.filter((e) => !e.star)].filter((e) => !skipped.includes(e.id))
   const task = queue[0]
+
+  // Fetch the gif early, so it is ready the moment a task is done.
+  useEffect(() => {
+    new Image().src = HORSE_GIF
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
