@@ -56,13 +56,13 @@ export function IndexIcon() {
   )
 }
 
-// A box with an arrow into it: saving everything for safekeeping.
-export function BackupIcon() {
+// A cog: settings, with backup and look inside.
+export function SettingsIcon() {
   return (
     <Icon>
-      <path d="M4 13v6a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6" />
-      <path d="M12 3v11" />
-      <path d="m7.5 9.5 4.5 4.5 4.5-4.5" />
+      <circle cx="12" cy="12" r="2.6" />
+      <circle cx="12" cy="12" r="6.4" />
+      <path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M5.5 18.5l2.1-2.1M16.4 7.6l2.1-2.1" />
     </Icon>
   )
 }

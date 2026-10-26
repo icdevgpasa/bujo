@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks'
 import { InstallGuide } from './components/InstallGuide'
-import { BackupIcon, DayIcon, FutureIcon, IndexIcon, MonthIcon } from './components/TabIcons'
+import { SettingsIcon, DayIcon, FutureIcon, IndexIcon, MonthIcon } from './components/TabIcons'
 import { monthKey } from './dates'
 import { shouldOfferInstall } from './install'
 import { href, useRoute, useTurn } from './router'
@@ -20,7 +20,7 @@ export function App() {
     { label: 'Miesiąc', link: href.month(monthKey()), active: route.view === 'month', Glyph: MonthIcon },
     { label: 'Przyszłość', link: href.future(), active: route.view === 'future', Glyph: FutureIcon },
     { label: 'Indeks i wyszukiwanie', link: href.index(), active: route.view === 'index' || route.view === 'collection', Glyph: IndexIcon },
-    { label: 'Kopia zapasowa i wygląd', link: href.backup(), active: route.view === 'backup', Glyph: BackupIcon },
+    { label: 'Ustawienia', link: href.backup(), active: route.view === 'backup', Glyph: SettingsIcon },
   ]
   return (
     <>

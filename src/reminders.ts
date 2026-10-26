@@ -63,8 +63,15 @@ export function reminderFor(text: string, day: string): Reminder {
   const start = parseDay(day)
   start.setHours(t.h, t.m, 0, 0)
   const alarm = new Date(start.getTime() - reminderLead() * 60_000)
-  const label = `${weekdayShort(dayKeyOf(alarm))} ${alarm.getDate()}.${String(alarm.getMonth() + 1).padStart(2, '0')}, ${alarm.getHours()}:${String(alarm.getMinutes()).padStart(2, '0')}`
-  return { title: text.trim() || 'Bujo', start, alarm, label }
+  return { title: text.trim() || 'Bujo', start, alarm, label: alarmLabel(alarm.getTime()) }
+}
+
+// "wt 27.10, 8:45", or just "8:45" when it rings on the entry's own day.
+export function alarmLabel(ms: number, day?: string): string {
+  const d = new Date(ms)
+  const time = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
+  const key = dayKeyOf(d)
+  return key === day ? time : `${weekdayShort(key)} ${d.getDate()}.${String(d.getMonth() + 1).padStart(2, '0')}, ${time}`
 }
 
 function dayKeyOf(d: Date): string {

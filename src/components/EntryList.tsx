@@ -1,3 +1,4 @@
+import { alarmLabel } from '../reminders'
 import { useState } from 'preact/hooks'
 import { db, kindOf, updateEntry, type Entry, type Photo } from '../db'
 import { formatDuration } from '../media'
@@ -61,6 +62,7 @@ export function EntryList({ entries, empty }: { entries: Entry[] | undefined; em
               <div class="body">
                 <button type="button" class="text" onClick={() => setOpen(entry)}>
                   {entry.text || <span class="muted">{placeholderFor(own.map(kindOf))}</span>}
+                  {entry.remindAt && <span class="remind" title="Przypomnienie w Kalendarzu"> 🔔 {alarmLabel(entry.remindAt, entry.log === 'daily' ? entry.key : undefined)}</span>}
                 </button>
                 {own.length > 0 && (
                   <div class="thumbs">
