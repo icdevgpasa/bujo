@@ -32,7 +32,10 @@ export function FutureView() {
           <EntryList entries={byMonth.get(m)} />
         </section>
       ))}
-      <Composer onSubmit={(type, text, files) => addEntry('future', target, type, text, files)}>
+      <Composer
+        here={{ log: 'future', key: target }}
+        onSubmit={(type, text, media, to) => addEntry(to?.log ?? 'future', to?.key ?? target, type, text, media)}
+      >
         <div class="chips" role="radiogroup" aria-label="Miesiąc">
           {months.map((m) => (
             <button type="button" role="radio" aria-checked={m === target} class={`chip ${m === target ? 'active' : ''}`} onClick={() => setTarget(m)}>

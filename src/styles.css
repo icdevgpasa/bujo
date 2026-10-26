@@ -661,6 +661,25 @@ button:disabled { opacity: 0.5; cursor: default; }
 [data-theme='modern'] .tabs a[aria-current='page'] { color: var(--ribbon); box-shadow: none; font-weight: 600; }
 [data-theme='modern'] .primary { background: var(--ribbon) !important; border-color: var(--ribbon) !important; color: #fff; }
 
+/* ---- Smart dates ---- */
+.when-hint {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ribbon) 8%, var(--paper-lit));
+  border-radius: var(--radius);
+}
+.when-hint .link { flex: none; padding: 0; }
+.sent-to { font-size: 13px; color: var(--ink-soft); }
+.sent-to a { color: var(--ribbon); }
+.toggle { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; line-height: 20px; cursor: pointer; }
+.toggle input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--ink); }
+
 /* ---- Install guide ---- */
 .install-why { margin: 0 0 8px; }
 .steps { margin: 0 0 12px; padding-left: 22px; }

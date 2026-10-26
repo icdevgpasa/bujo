@@ -1,20 +1,37 @@
 import type { ComponentChildren } from 'preact'
-import { useCallback, useState } from 'preact/hooks'
+import { useCallback, useEffect, useState } from 'preact/hooks'
 import { describeClipboardError, findUrl, readClipboard, type Pasted } from '../clipboard'
-import type { EntryType } from '../db'
+import type { EntryType, LogKind } from '../db'
 import { primeKeyboard } from '../keyboard'
 import { prepareMedia, type Prepared } from '../media'
+import { href } from '../router'
+import { findWhen, smartDatesOn, type When } from '../smartDates'
 import { describeAttachments } from './attachments'
 import { BULLET, TYPE_LABEL } from './bullets'
 import { MediaPicker } from './MediaPicker'
 import { RecordButton } from './Recorder'
 import { Writer } from './Writer'
 
+export interface Target {
+  log: LogKind
+  key: string
+}
+
+function linkTo({ log, key }: Target): string {
+  if (log === 'daily') return href.day(key)
+  if (log === 'monthly') return href.month(key)
+  return href.future()
+}
+
 export function Composer({
   onSubmit,
+  here,
   children,
 }: {
-  onSubmit: (type: EntryType, text: string, media: Prepared[]) => Promise<unknown>
+  // target is set when a date in the text sends the entry elsewhere.
+  onSubmit: (type: EntryType, text: string, media: Prepared[], target?: Target) => Promise<unknown>
+  // The page being written on; dates are only read where this is given.
+  here?: Target
   children?: ComponentChildren
 }) {
   const [text, setText] = useState('')
@@ -24,6 +41,19 @@ export function Composer({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [writing, setWriting] = useState(false)
+  const [keepHere, setKeepHere] = useState(false)
+  const [sentTo, setSentTo] = useState<When>()
+
+  // A date in the text ("jutro", "w piątek") suggests another page, unless
+  // the switch on the Kopia page is off or the hint was dismissed.
+  const found = here && !keepHere && smartDatesOn() ? findWhen(text) : undefined
+  const when = found && !(found.log === here?.log && found.key === here?.key) ? found : undefined
+
+  useEffect(() => {
+    if (!sentTo) return
+    const timer = setTimeout(() => setSentTo(undefined), 6000)
+    return () => clearTimeout(timer)
+  }, [sentTo])
 
   const openWriter = () => {
     primeKeyboard()
@@ -86,9 +116,12 @@ export function Composer({
     setBusy(true)
     setError('')
     try {
-      await onSubmit(type, value, media)
+      if (when) await onSubmit(type, when.text || value, media, { log: when.log, key: when.key })
+      else await onSubmit(type, value, media)
+      setSentTo(when)
       setText('')
       setMedia([])
+      setKeepHere(false)
       setWriting(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Nie udało się zapisać')
@@ -125,6 +158,12 @@ export function Composer({
   return (
     <div class="composer">
       {children}
+      {sentTo && !writing && (
+        <div class="sent-to" role="status">
+          Dodano na {sentTo.label}.{' '}
+          <a href={linkTo(sentTo)} onClick={() => setSentTo(undefined)}>Pokaż</a>
+        </div>
+      )}
       {!writing && attachments}
       {!writing && error && <div class="error" role="alert">{error}</div>}
       <div class="composer-row">
@@ -167,6 +206,17 @@ export function Composer({
               </button>
             ))}
           </div>
+          {when && (
+            <div class="when-hint" role="status">
+              <span>
+                → <b>{when.label}</b>
+                {when.text && when.text !== text.trim() && <> jako „{when.text}”</>}
+              </span>
+              <button type="button" class="link" onMouseDown={(e) => e.preventDefault()} onClick={() => setKeepHere(true)}>
+                zostaw tutaj
+              </button>
+            </div>
+          )}
         </Writer>
       )}
     </div>

@@ -35,7 +35,10 @@ export function DailyView({ day }: { day: string }) {
         </a>
       )}
       <EntryList entries={entries} empty="Pusta strona. Dodaj pierwszy wpis poniżej." />
-      <Composer onSubmit={(type, text, files) => addEntry('daily', day, type, text, files)} />
+      <Composer
+        here={{ log: 'daily', key: day }}
+        onSubmit={(type, text, media, to) => addEntry(to?.log ?? 'daily', to?.key ?? day, type, text, media)}
+      />
     </>
   )
 }

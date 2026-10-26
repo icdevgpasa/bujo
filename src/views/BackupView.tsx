@@ -5,6 +5,7 @@ import { db, kindOf } from '../db'
 import { plural } from '../plural'
 import { InstallGuide } from '../components/InstallGuide'
 import { isInstalled } from '../install'
+import { setSmartDates, smartDatesOn } from '../smartDates'
 import { currentTheme, setTheme, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
 
@@ -32,6 +33,7 @@ export function BackupView() {
   const fileInput = useRef<HTMLInputElement>(null)
   const [theme, setThemeState] = useState(currentTheme)
   const [guide, setGuide] = useState(false)
+  const [smartDates, setSmartDatesState] = useState(smartDatesOn)
 
   const chooseTheme = (t: Theme) => {
     setTheme(t)
@@ -175,6 +177,21 @@ export function BackupView() {
             Nowoczesny
           </button>
         </div>
+        <label class="toggle">
+          <input
+            type="checkbox"
+            checked={smartDates}
+            onChange={(e) => {
+              setSmartDates(e.currentTarget.checked)
+              setSmartDatesState(e.currentTarget.checked)
+            }}
+          />
+          <span>
+            <b>Rozpoznawaj daty w tekście</b>
+            <br />
+            <span class="muted small">„Kupić jutro chleb” trafi na jutro jako „Kupić chleb”. Rozumie m.in. jutro, pojutrze, w piątek, za 3 dni, 15 listopada, w grudniu.</span>
+          </span>
+        </label>
       </section>
       {!isInstalled && (
         <p>
