@@ -235,6 +235,10 @@ section:first-of-type h2 { margin-top: 4px; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.calendar .cal-item + .cal-item { margin-left: 10px; }
+.calendar .cal-bullet { margin-right: 4px; color: var(--ink-soft); }
+.calendar .cal-item.done { color: var(--ink-faint); text-decoration: line-through; text-decoration-thickness: 1px; }
+.calendar .cal-item.done .cal-bullet { text-decoration: none; display: inline-block; }
 .calendar .weekend .num, .calendar .weekend .wd { color: var(--ribbon); }
 .calendar .today { background: linear-gradient(to right, color-mix(in srgb, var(--ribbon) 8%, transparent), transparent); }
 .calendar .today .num { color: var(--ink); font-weight: 600; }

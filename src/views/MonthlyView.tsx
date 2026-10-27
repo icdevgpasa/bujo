@@ -17,14 +17,22 @@ import {
 import { href } from '../router'
 import { useLiveQuery } from '../useLiveQuery'
 import { useSwipe } from '../useSwipe'
+import { bulletFor } from '../components/bullets'
+import { monthTasksOn } from '../calendar'
 
 export function MonthlyView({ month }: { month: string }) {
   const days = daysOfMonth(month)
   const tasks = useLiveQuery(() => entriesFor('monthly', month), [month])
   const planned = useLiveQuery(() => entriesFor('future', month).then((list) => list.filter((e) => e.status === 'open')), [month])
+  const withTasks = monthTasksOn()
+  // Events, and with the switch on also the day's tasks; ones moved on or
+  // crossed out are left out, they live elsewhere now.
   const events = useLiveQuery(
-    () => entriesBetween('daily', days[0], days[days.length - 1]).then((list) => list.filter((e) => e.type === 'event')),
-    [month],
+    () =>
+      entriesBetween('daily', days[0], days[days.length - 1]).then((list) =>
+        list.filter((e) => e.type === 'event' || (withTasks && e.type === 'task' && (e.status === 'open' || e.status === 'done'))),
+      ),
+    [month, withTasks],
   )
   const habits = useLiveQuery(() => habitsFor(month), [month])
   const [editing, setEditing] = useState<Habit>()
@@ -110,7 +118,18 @@ export function MonthlyView({ month }: { month: string }) {
                 <a href={href.day(d)}>
                   <span class="num">{dayNum}</span>
                   <span class="wd">{weekday}</span>
-                  <span class="ev">{dayEvents.map((e) => e.text).join(', ')}</span>
+                  {withTasks ? (
+                    <span class="ev">
+                      {dayEvents.map((e) => (
+                        <span class={`cal-item ${e.type} ${e.status}`}>
+                          <span class="cal-bullet" aria-hidden="true">{bulletFor(e)}</span>
+                          {e.text}
+                        </span>
+                      ))}
+                    </span>
+                  ) : (
+                    <span class="ev">{dayEvents.map((e) => e.text).join(', ')}</span>
+                  )}
                 </a>
                 {habits && habits.length > 0 && (
                   <span class="cells">

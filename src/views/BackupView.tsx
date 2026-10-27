@@ -10,6 +10,7 @@ import { FOCUS, focusOn, setFocus, type FocusKey } from '../focus'
 import { HOURS, LEADS, reminderHour, reminderLead, remindersOn, setReminderHour, setReminderLead, setRemindersOn } from '../reminders'
 import { setSmartDates, smartDatesOn } from '../smartDates'
 import { setShare, shareOn } from '../share'
+import { monthTasksOn, setMonthTasks } from '../calendar'
 import { currentDark, currentTheme, setDark, setTheme, THEMES, type Dark, type Theme } from '../theme'
 import { useLiveQuery } from '../useLiveQuery'
 
@@ -42,6 +43,7 @@ export function BackupView() {
   const [smartDates, setSmartDatesState] = useState(smartDatesOn)
   const [reminders, setRemindersState] = useState(remindersOn)
   const [sharing, setSharingState] = useState(shareOn)
+  const [monthTasks, setMonthTasksState] = useState(monthTasksOn)
   const [focus, setFocusState] = useState(() => Object.fromEntries(FOCUS.map((f) => [f.key, focusOn(f.key)])) as Record<FocusKey, boolean>)
   const [lead, setLeadState] = useState(reminderLead)
   const [hour, setHourState] = useState(reminderHour)
@@ -151,6 +153,21 @@ export function BackupView() {
             </button>
           ))}
         </div>
+        <label class="toggle">
+          <input
+            type="checkbox"
+            checked={monthTasks}
+            onChange={(e) => {
+              setMonthTasks(e.currentTarget.checked)
+              setMonthTasksState(e.currentTarget.checked)
+            }}
+          />
+          <span>
+            <b>Zadania w kalendarzu miesiąca</b>
+            <br />
+            <span class="muted small">Przy każdym dniu miesiąca widać nie tylko wydarzenia ○, ale też zadania •. Zrobione mają × i są przekreślone.</span>
+          </span>
+        </label>
       </section>
 
       <section class="settings-section">
